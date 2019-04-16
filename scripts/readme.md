@@ -11,4 +11,5 @@
 |`SelectPolygonmesh.py`|シーンのポリゴンメッシュをすべて選択|
 |`SetCursorPosition.py`|3次元カーソル位置を指定|
 |`TraceHierarchy.py`|シーン階層をたどる|
-
+|`GetSysPath.py`|検索パスの一覧と追加|
+|`CalcLineLength.py`|線形状の長さを計算|
