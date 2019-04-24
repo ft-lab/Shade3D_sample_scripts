@@ -1,0 +1,8 @@
+body {
+  font-size: small;
+  font-family:Lucida Grande,Arial,'MS UI Gothic',sans-serif;
+  user-select:none;
+  -ms-user-select:none;
+  -webkit-user-select: none;
+}
+

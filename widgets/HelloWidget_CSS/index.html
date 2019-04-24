@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" type="text/css" href="./style.css" />
+<script src="./readExternalFile.js"></script>
+
+<script type="text/javascript">
+	function initialize () {
+	}
+
+	function do_script () {
+		py_src = "nValue = " + document.getElementById('radius').value + "\n";
+		py_src += readFileToString('./createSphere.py');
+		window.external.setScript(py_src);
+	}
+</script>
+</head>
+
+<body onload="initialize();">
+
+<!--
+  cssを使用し、フォントをShade3DのUIに近くなるように調整。
+  UI上のテキストを選択できないように制限。
+-->	
+
+<h3>球を作成</h3>
+<hr>
+<form method="POST" action="">
+	指定の半径の球を作成します。<br><br>
+	半径：<input type="text" id="radius" size="6">mm<br><br>
+	<input type="button" value="OK" onclick="do_script();">
+</form>
+
+</body>
+</html>
