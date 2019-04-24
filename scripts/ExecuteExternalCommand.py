@@ -2,6 +2,9 @@
 # 外部コマンドを実行し、結果の文字列を表示.
 # この例の場合は、ローカル環境の「C:\Python35\python.exe --version」を実行している.
 # ただし、結果の文字列で全角文字の場合は正しく表示されない.
+#
+# @title \en Execute an external command \enden
+# @title \ja 外部コマンドを実行 \endja
 # -----------------------------------------------------.
 import subprocess
 

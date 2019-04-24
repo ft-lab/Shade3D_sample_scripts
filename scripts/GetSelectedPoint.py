@@ -2,6 +2,9 @@
 # 選択頂点の座標値を取得.
 #    形状編集モードで頂点が選択されている場合、.
 #    ブラウザで選択された形状の選択頂点の座標値を一覧.
+#
+# @title \en Get coordinate value of selected vertices \enden
+# @title \ja 選択頂点の座標値を取得 \endja
 # -----------------------------------------------------.
 
 scene = xshade.scene()
