@@ -16,4 +16,7 @@
 |[GetSceneInfo.py](./GetSceneInfo.py)|シーンの各要素数を取得|
 |[SaveRenderingImage.py](./SaveRenderingImage.py)|レンダリング画像をファイル保存|
 |[ListUnreferencedImages.py](./ListUnreferencedImages.py)|未参照のイメージを一覧|
+|[GenerateUUID.py](./GenerateUUID.py)|UUIDを生成|
+|[ShowDialog.py](./ShowDialog.py)|ダイアログボックスを表示|
+
 
