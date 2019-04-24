@@ -14,4 +14,6 @@
 |[GetSysPath.py](./GetSysPath.py)|検索パスの一覧と追加|
 |[CalcLineLength.py](./CalcLineLength.py)|線形状の長さを計算|
 |[GetSceneInfo.py](./GetSceneInfo.py)|シーンの各要素数を取得|
+|[SaveRenderingImage.py](./SaveRenderingImage.py)|レンダリング画像をファイル保存|
+|[ListUnreferencedImages.py](./ListUnreferencedImages.py)|未参照のイメージを一覧|
 
