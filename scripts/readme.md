@@ -38,3 +38,4 @@
 |ファイル名|内容|
 |--|--|
 |[SaveRenderingImage.py](./SaveRenderingImage.py)|レンダリング画像をファイル保存|
+|[GetZDepthImage.py](./GetZDepthImage.py)|レンダリングイメージのZ値(ZDepth)を取得し、マスターイメージとして出力|
