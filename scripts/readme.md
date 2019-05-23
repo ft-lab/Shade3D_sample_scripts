@@ -24,6 +24,7 @@
 |[ListUnreferencedImages.py](./ListUnreferencedImages.py)|未参照のイメージを一覧|
 |[ShowDialog.py](./ShowDialog.py)|ダイアログボックスを表示|
 |[ChangePoint.py](./ChangePoint.py)|選択ポイントの座標値を変更|
+|[ClearBakeNormals.py](./ClearBakeNormals.py)|ポリゴンメッシュのインポートした固定法線をクリア|
 
 
 ## カメラ関連
