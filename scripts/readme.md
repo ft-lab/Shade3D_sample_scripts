@@ -18,5 +18,6 @@
 |[ListUnreferencedImages.py](./ListUnreferencedImages.py)|未参照のイメージを一覧|
 |[GenerateUUID.py](./GenerateUUID.py)|UUIDを生成|
 |[ShowDialog.py](./ShowDialog.py)|ダイアログボックスを表示|
+|[ChangePoint.py](./ChangePoint.py)|選択ポイントの座標値を変更|
 
 
