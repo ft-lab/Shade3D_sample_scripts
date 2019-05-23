@@ -27,4 +27,4 @@ getUnreferencedMasterImages(rootShape, masterImageList)
 if len(masterImageList) > 0:
   print "-- Unreferenced images --------"
   for masterImage in masterImageList:
-     print masterImage.name
+    print masterImage.name
