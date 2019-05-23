@@ -32,6 +32,7 @@
 |ファイル名|内容|
 |--|--|
 |[GetCameraFOV.py](./GetCameraFOV.py)|カメラの視野角度を取得|
+|[CalcCameraNearClip.py](./CalcCameraNearClip.py)|透視投影カメラの近クリップ面までの距離を計算|
 
 
 ## レンダリング関連
