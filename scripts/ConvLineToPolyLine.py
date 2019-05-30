@@ -62,7 +62,7 @@ def getBezierPoint (v1Pos, v1Out, v2In, v2Pos, fPos):
 # 線形状を直線の集まりに分解.
 # @param[in] shape       対象形状.
 # @param[in] lineDivCou  ラインの全体の分割数.
-# @return ワールド座標でのポイントの配列.
+# @return ポイントの配列.
 #---------------------------------------.
 def getLinePoints (shape, lineDivCou):
   vCou = shape.total_number_of_control_points
@@ -70,8 +70,6 @@ def getLinePoints (shape, lineDivCou):
   if shape.type != 4 or vCou < 2:  # 線形状でない場合.
     return vList
   
-  lwMat = numpy.matrix(shape.local_to_world_matrix)
-
   divCou = lineDivCou / vCou
   if divCou < 4:
     divCou = 4
@@ -88,20 +86,16 @@ def getLinePoints (shape, lineDivCou):
     for j in range(divCou + 1):
       p = getBezierPoint(p1.position, p1.out_handle, p2.in_handle, p2.position, dPos)
       if (i == 0) or (i != 0 and j > 0):
-        # pをワールド座標に変換.
-        v = numpy.array([p[0], p[1], p[2], 1.0])
-        v = numpy.dot(v, lwMat)
-        p = [v[0,0], v[0,1], v[0,2]]
-
         vList.append(p)
       dPos += divD
 
   return vList
 
 #---------------------------------------.
-# ポイントのみで構成された配列情報から、等間隔になるように再計算した配列を再計算.
+# ポイントのみで構成された配列情報から、等間隔になるように再計算.
 # @param[in] vList   ポイントの配列.
 # @param[in] divCou  新しいラインの分割数.
+# @return ポイントの配列.
 #---------------------------------------.
 def recalcLinePoints (vList, divCou):
   # numpyの形式に配列に格納し直す.
