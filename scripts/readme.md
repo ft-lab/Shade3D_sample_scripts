@@ -25,7 +25,7 @@
 |[ShowDialog.py](./ShowDialog.py)|ダイアログボックスを表示|
 |[ChangePoint.py](./ChangePoint.py)|選択ポイントの座標値を変更|
 |[ClearBakeNormals.py](./ClearBakeNormals.py)|ポリゴンメッシュのインポートした固定法線をクリア|
-
+|[AlignToLine.py](./AlignToLine.py)|選択形状を記憶した線形状に整列|
 
 ## カメラ関連
 
