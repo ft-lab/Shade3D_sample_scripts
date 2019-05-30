@@ -63,24 +63,6 @@ def isZero (v):
   return False
 
 #---------------------------------------.
-# ベクトルの減算.
-# @param[in] v1  (x, y, z)の3要素.
-# @param[in] v2  (x, y, z)の3要素.
-#---------------------------------------.
-def subVec3Vec3 (v1, v2):
-  vec3_1 = numpy.array(v1)
-  vec3_2 = numpy.array(v2)
-  
-  return vec3_1 - vec3_2
-
-#---------------------------------------.
-# ベクトルの長さを計算.
-#---------------------------------------.
-def lengthVec3 (v):
-  vec3 = numpy.array(v)
-  return numpy.linalg.norm(vec3)
-
-#---------------------------------------.
 # ベジェ上の位置を計算.
 #---------------------------------------.
 def getBezierPoint (v1Pos, v1Out, v2In, v2Pos, fPos):
@@ -258,44 +240,54 @@ def moveToLine (vList, shape, distV, fMargin):
 
 # ---------------------------------------------------------------------.
 
-# 選択形状を記憶された線形状に近づかせる距離 (ミリメートル).
-distV = 50.0
-
 # 範囲0.0-1.0を少しはみ出させるマージン.
 fMargin = 0.5
 
-# 記憶された形状を取得.
-if scene.number_of_memorized_shapes > 0:
+if scene.number_of_memorized_shapes == 0 or scene.memorized_shape().type != 4:
+  xshade.show_message_box('線形状を「記憶」してください。', False)
+  
+else:
+  # 記憶された形状を取得.
   memShape = scene.memorized_shape()
 
   if memShape.type == 4:   # 線形状の場合.
-    lineDivCou = 50
 
-    # 選択形状を取得し、線形状以外のものを格納.
-    aShapes = []
-    for shape in scene.active_shapes:
-      if shape.type != 4:
-        aShapes.append(shape)
+    # ダイアログボックスの作成と表示.
+    dlg = xshade.create_dialog_with_uuid('5ac13729-57cb-4777-ba0b-644d3f1daca0')
+    div_id = dlg.append_int('線形状の分割数')
+    dist_id = dlg.append_float('線形状から離す距離', 'mm')
+    dlg.set_value(div_id, 50)
+    dlg.set_value(dist_id, 10.0)
+    dlg.set_default_value(div_id, 50)
+    dlg.set_default_value(dist_id, 10.0)
+    dlg.append_default_button()
 
-    for loop in range(3):
-      # 線形状からポイントの配列を取得.
-      vList = getLinePoints(memShape, lineDivCou)
+    if dlg.ask("選択形状を記憶した線形状に整列"):
+      lineDivCou = max(10, dlg.get_value(div_id))
+      distV      = max(0.0, dlg.get_value(dist_id))
 
-      updateF = False
-      for i in range(len(aShapes)):
-        if aShapes[i] == None:
-          continue
+      # 選択形状を取得し、線形状以外のものを格納.
+      aShapes = []
+      for shape in scene.active_shapes:
+        if shape.type != 4:
+          aShapes.append(shape)
 
-        # 指定の形状を、memShape(vListがポイントの配列)の線形状に近づかせる.
-        if moveToLine(vList, aShapes[i], distV, fMargin):
-          aShapes[i] = None
-          updateF = True
+      for loop in range(3):
+        # 線形状からポイントの配列を取得.
+        vList = getLinePoints(memShape, lineDivCou)
 
-      if updateF == False:
-        break
+        updateF = False
+        for i in range(len(aShapes)):
+          if aShapes[i] == None:
+            continue
 
-      # 線分上に垂線が存在しない場合は、ラインの分割を粗くして再度行う.
-      lineDivCou /= 2
+          # 指定の形状を、memShape(vListがポイントの配列)の線形状に近づかせる.
+          if moveToLine(vList, aShapes[i], distV, fMargin):
+            aShapes[i] = None
+            updateF = True
 
+        if updateF == False:
+          break
 
-
+        # 線分上に垂線が存在しない場合は、ラインの分割を粗くして再度行う.
+        lineDivCou /= 2
