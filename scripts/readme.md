@@ -28,6 +28,7 @@
 |[AlignToLine.py](./AlignToLine.py)|選択形状を記憶した線形状に整列|
 |[ConvLineToPolyLine.py](./ConvLineToPolyLine.py)|線形状を等間隔の直線群に変換|
 |[ConvLineToMeshEdge.py](./ConvLineToMeshEdge.py)|線形状をポリゴンメッシュのエッジに変換|
+|[LineToMeshTube.py](./LineToMeshTube.py)|線形状からポリゴンメッシュのチューブを作成|
 
 
 ## カメラ関連
