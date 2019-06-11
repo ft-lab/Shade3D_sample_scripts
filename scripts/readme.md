@@ -30,8 +30,7 @@
 |[ConvLineToMeshEdge.py](./ConvLineToMeshEdge.py)|線形状をポリゴンメッシュのエッジに変換|
 |[LineToMeshTube.py](./LineToMeshTube.py)|線形状からポリゴンメッシュのチューブを作成|
 |[GetActivePointsCount.py](./GetActivePointsCount.py)|線形状で選択されたコントロールポイント数を取得|
-
-
+|[SelectPolygonmeshSingleVertex.py](./SelectPolygonmeshSingleVertex.py)|ポリゴンメッシュの重複頂点で、1つの頂点のみを選択|
 
 ## カメラ関連
 
