@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+<!--  Shade3Dのスクリプト部  -->
+<script id="show_messagebox" type="text/plain">
+xshade.show_message_box(msgStr, False)
+</script>
+
+<script type="text/javascript">
+	/**
+	 * JavaScriptでのメッセージボックスを表示.
+	 */
+	function show_js_messageBox () {
+		window.alert("JavaScriptでのメッセージ表示です。");
+	}
+
+	/**
+	 * Shade3Dでのメッセージボックスを表示.
+	 */
+	function show_shade3d_messageBox (msgStr) {
+		var scriptStr = document.getElementById("show_messagebox").textContent;
+
+		var py_src = "msgStr = " + "\"Shade3Dでのメッセージ表示です。\"\n";
+		py_src += scriptStr;
+		window.external.setScript(py_src);
+	}
+</script>
+
+</head>
+
+<body>
+
+<h3>メッセージボックスを表示</h3>
+<hr>
+<form method="POST" action="">
+	JavaScriptのメッセージボックスを表示します。<br>
+	<input type="button" value="メッセージボックス表示" onclick="show_js_messageBox();"><br><br>
+
+	Shade3Dのメッセージボックスを表示します。<br>
+	<input type="button" value="メッセージボックス表示" onclick="show_shade3d_messageBox();"><br><br>
+	<hr />
+</form>
+
+</body>
+</html>

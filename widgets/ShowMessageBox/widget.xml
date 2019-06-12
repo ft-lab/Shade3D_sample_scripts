@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget>
+	<uuid>a14f8abc-76f6-426b-b476-b1cc7f97727c</uuid>
+	<name lang="ja">メッセージボックスを表示</name>
+	<name lang="en"></name>
+	<url>index.html</url>
+	<version>1.0</version>
+	<description lang="ja">メッセージボックスを表示</description>
+	<description lang="en">Show MessageBox.</description>
+	<window initial_size="350 290"
+		position="0.42 0.63"
+		resizeable="true">
+	</window>
+</widget>
+
