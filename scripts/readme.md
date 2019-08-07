@@ -32,6 +32,12 @@
 |[GetActivePointsCount.py](./GetActivePointsCount.py)|線形状で選択されたコントロールポイント数を取得|
 |[SelectPolygonmeshSingleVertex.py](./SelectPolygonmeshSingleVertex.py)|ポリゴンメッシュの重複頂点で、1つの頂点のみを選択|
 
+## 表面材質関連
+
+|ファイル名|内容|
+|--|--|
+|[SearchMaterial.py](./SearchMaterial.py)|マスターサーフェスではない独立した材質を持つ形状を列挙|
+
 ## カメラ関連
 
 |ファイル名|内容|
