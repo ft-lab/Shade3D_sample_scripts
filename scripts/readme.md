@@ -37,6 +37,7 @@
 |ファイル名|内容|
 |--|--|
 |[SearchMaterial.py](./SearchMaterial.py)|マスターサーフェスではない独立した材質を持つ形状を列挙|
+|[ToMasterSurfaces.py](./ToMasterSurfaces.py)|独立した表面材質をマスターサーフェスに整理|
 
 ## カメラ関連
 

@@ -43,7 +43,7 @@ def getShapePath (shape):
 
   return pathStr
 
-# shapeから階層構造をたどって出力.
+# shapeから階層構造をたどる.
 rootShape = scene.shape  # ルート形状.
 
 searchShapesA = []
