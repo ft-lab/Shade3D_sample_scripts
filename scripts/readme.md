@@ -32,6 +32,7 @@
 |[GetActivePointsCount.py](./GetActivePointsCount.py)|線形状で選択されたコントロールポイント数を取得|
 |[SelectPolygonmeshSingleVertex.py](./SelectPolygonmeshSingleVertex.py)|ポリゴンメッシュの重複頂点で、1つの頂点のみを選択|
 |[CheckSkinMesh.py](./CheckSkinMesh.py)|スキンが割り当てられているポリゴンメッシュを列挙|
+|[EnumLinePoints.py](./EnumLinePoints.py)|線形状のコントロールポイント情報を表示|
 
 ## 表面材質関連
 
