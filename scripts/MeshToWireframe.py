@@ -72,9 +72,8 @@ def calcLinesCrossPos (pA1, pA2, pB1, pB2):
 # ポリゴンメッシュをワイヤーフレームに変換.
 # -----------------------------------------------.
 def convMeshToWireframe (shape, lineWidth):
-    if shape.type != 7:
-        print 'ポリゴンメッシュを選択してください。'
-        return
+    if shape.type != 7:   # ポリゴンメッシュでない場合.
+        return None
     
     shape.setup_plane_equation()
 
@@ -292,6 +291,10 @@ def convMeshToWireframe (shape, lineWidth):
         shape.render_flag = 0
         shape.hide()
 
+        return pMesh
+
+    return None
+
 shape = scene.active_shape()
 
 # -------------------------------------.
@@ -312,10 +315,25 @@ dlg.set_default_value(width_id, 10.0)
 
 # ダイアログボックスを表示.
 if dlg.ask("ポリゴンメッシュをワイヤーフレームに変換"):
-  # ダイアログボックスでの値を取得.
-  lineWidth = dlg.get_value(width_id)
+    # ダイアログボックスでの値を取得.
+    lineWidth = dlg.get_value(width_id)
 
-  # ポリゴンメッシュをワイヤーフレームに変換.
-  convMeshToWireframe(shape, lineWidth)
+    # 選択形状を取得.
+    shapesList = []
+    for shape in scene.active_shapes:
+        shapesList.append(shape)
+
+    # ポリゴンメッシュをワイヤーフレームに変換.
+    newShapesList = []
+    for shape in shapesList:
+        nShape = convMeshToWireframe(shape, lineWidth)
+        if nShape != None:
+            newShapesList.append(nShape)
+
+    if len(newShapesList) == 0:
+        print 'ポリゴンメッシュを選択してください。'
+    else:
+        scene.active_shapes = newShapesList
+       
 
 
