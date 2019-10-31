@@ -50,6 +50,25 @@ def cleanupMeshVertices (shape):
     scene.exit_modify_mode()
 
 # -----------------------------------------------.
+# 2つの直線の交点を計算。 (x, y, z)の要素のZは0.0とする.
+# pA1 - pA2 と pB1 - pB2 の直線交点を計算する.
+# -----------------------------------------------.
+def calcLinesCrossPos (pA1, pA2, pB1, pB2):
+    dV = (pA2[1]-pA1[1]) * (pB2[0]-pB1[0]) - (pA2[0]-pA1[0]) * (pB2[1]-pB1[1])
+    if math.fabs(dV) < 1e-6:
+        return pA2
+
+    d1 = pB1[1] * pB2[0] - pB1[0] * pB2[1]
+    d2 = pA1[1] * pA2[0] - pA1[0] * pA2[1]
+
+    fx = d1 * (pA2[0] - pA1[0]) - d2 * (pB2[0] - pB1[0])
+    fx /= dV
+    fy = d1 * (pA2[1] - pA1[1]) - d2 * (pB2[1] - pB1[1])
+    fy /= dV
+
+    return numpy.array([fx, fy, 0.0])
+
+# -----------------------------------------------.
 # ポリゴンメッシュをワイヤーフレームに変換.
 # -----------------------------------------------.
 def convMeshToWireframe (shape, lineWidth):
@@ -62,9 +81,8 @@ def convMeshToWireframe (shape, lineWidth):
     zUpNormal = numpy.array([0.0, 0.0, 1.0])
     fMinDist = 1e-5
 
-    faceVList = []
     faceOrgIndicesList = []
-    tmpVersList = []
+    newVersList = []
     facesCou = shape.number_of_faces
     versCou  = shape.total_number_of_control_points
     for fLoop in range(facesCou):
@@ -174,7 +192,7 @@ def convMeshToWireframe (shape, lineWidth):
             if lineWidth2 > lenV:
                 lineWidth2 = lenV
 
-        # TODO : エッジを内側にlineWidth2分シフト.
+        # エッジを内側にlineWidth2分シフト.
         tmpVers = []
         for i in range(fvCou):
             e0 = i
@@ -200,19 +218,37 @@ def convMeshToWireframe (shape, lineWidth):
             tmpVers.append(p0_3 + fCenter)
             tmpVers.append(p1_3 + fCenter)
 
-        # test..tmpVersを元のローカル座標に戻す.
-        for i in range(len(tmpVers)):
-            p = tmpVers[i]
+        # エッジの交点を計算.
+        crossVers = []
+        iPos = 0
+        for i in range(fvCou):
+            p0 = tmpVers[iPos]
+            p1 = tmpVers[iPos + 1]
+            if i == 0:
+                iPos2 = (fvCou - 1) * 2
+                p0_prev = tmpVers[iPos2]
+                p1_prev = tmpVers[iPos2 + 1]
+            else:
+                p0_prev = tmpVers[iPos - 2]
+                p1_prev = tmpVers[iPos - 1]
+
+            # p0_prevを通りvDir_prevの直線と、p0を通りvDirの直線との交点を計算.
+            p = calcLinesCrossPos(p0, p1, p0_prev, p1_prev)
+            crossVers.append(p)
+            iPos += 2
+
+        # crossVersを元のローカル座標に戻す.
+        for i in range(fvCou):
+            p = crossVers[i]
             p = numpy.array([p[0], p[1], p[2], 1.0])
             retM = numpy.dot(p, fnMatrix)
             p2 = numpy.array([retM[0,0], retM[0,1], retM[0,2]]) + fCenterPos
-            tmpVers[i] = p2
-        tmpVersList.append(tmpVers)
+            crossVers[i] = p2
 
-        #faceVList.append(vers)
+        newVersList.append(crossVers)
         faceOrgIndicesList.append(versIndices)
     
-    if len(tmpVersList) >= 1:
+    if len(newVersList) >= 1:
         nameStr = shape.name + '_wireframe'
         scene.begin_creating()
         pMesh = scene.begin_polygon_mesh(nameStr)
@@ -229,29 +265,20 @@ def convMeshToWireframe (shape, lineWidth):
         for fLoop in range(len(faceOrgIndicesList)):
             versOrgIndices = faceOrgIndicesList[fLoop]
 
-            tmpVers = tmpVersList[fLoop]
-            fvCou = len(tmpVers)
-            for p in tmpVers:
+            newVers = newVersList[fLoop]
+            for p in newVers:
                 scene.append_polygon_mesh_vertex([p[0], p[1], p[2]])
 
-            fvCouH = fvCou / 2
-            iPos = 0
-            for i in range(fvCouH):
+            fvCou = len(newVers)
+            for i in range(fvCou):
                 e0 = i
-                e1 = (i + 1) % fvCouH
+                e1 = (i + 1) % fvCou
                 fIndex[0] = versOrgIndices[e0]
                 fIndex[1] = versOrgIndices[e1]
-
-                e0_2 = iPos
-                e1_2 = iPos + 1
-                fIndex[2] = fIPos + e1_2 + vOffset
-                fIndex[3] = fIPos + e0_2 + vOffset
+                fIndex[2] = fIPos + e1 + vOffset
+                fIndex[3] = fIPos + e0 + vOffset
                 scene.append_polygon_mesh_face(fIndex)
-
-                iPos += 2
             fIPos += fvCou
-
-        vOffset = versCou
 
         scene.end_polygon_mesh()
         pMesh.make_edges()   # 稜線を生成.
