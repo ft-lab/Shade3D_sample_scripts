@@ -49,6 +49,20 @@ def calcLinesCrossPos (pA1, pA2, pB1, pB2):
     fy = d1 * (pA2[1] - pA1[1]) - d2 * (pB2[1] - pB1[1])
     fy /= dV
 
+    # ラフにクリッピング.
+    fMinX = min(min(min(pA1[0], pA2[0]), pB1[0]), pB2[0])
+    fMaxX = max(max(max(pA1[0], pA2[0]), pB1[0]), pB2[0])
+    fMinY = min(min(min(pA1[1], pA2[1]), pB1[1]), pB2[1])
+    fMaxY = max(max(max(pA1[1], pA2[1]), pB1[1]), pB2[1])
+    dx = (fMaxX - fMinX) * 0.5
+    dy = (fMaxY - fMinY) * 0.5
+    fMinX -= dx
+    fMaxX += dx
+    fMinY -= dy
+    fMaxY += dy
+    if fx < fMinX or fx > fMaxX or fy < fMinY or fy > fMaxY:
+        return pA2
+
     return numpy.array([fx, fy, 0.0])
 
 # -----------------------------------------------.
