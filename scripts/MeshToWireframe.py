@@ -13,41 +13,24 @@ scene = xshade.scene()
 # 指定のポリゴンメッシュで、面に属さない頂点を削除.
 # -----------------------------------------------.
 def cleanupMeshVertices (shape):
-    # 形状編集モードに入る.
-    scene.enter_modify_mode()
-    oldSelectionMode = scene.selection_mode
+    # 面で参照される頂点を取得.
+    versCou  = shape.total_number_of_control_points
+    facesCou = shape.number_of_faces
+    vUsedList = [0] * versCou
+    for fLoop in range(facesCou):
+        f = shape.face(fLoop)
+        vCou = f.number_of_vertices
+        for i in range(vCou):
+            vUsedList[ f.vertex_indices[i] ] = 1
 
-    # すべての面を選択.
-    scene.selection_mode = 0
-    for i in range(shape.number_of_faces):
-        shape.face(i).active = True
-    shape.update()
-
-    # 頂点選択モード。これで、面を構成する頂点のみ選択される.
-    scene.selection_mode = 2
-
-    # 頂点の選択を反転.
-    tCou = shape.total_number_of_control_points
-    for i in range(tCou):
-        if shape.vertex(i).active:
-            shape.vertex(i).active = False
-        else:
-            shape.vertex(i).active = True
-    
-    # 選択頂点を削除.
+    # 参照されない頂点を削除.
     shape.begin_removing_control_points()
 
-    for i in range(tCou):
-        if shape.vertex(tCou - i - 1).active:
-            shape.remove_control_point(tCou - i - 1)
+    for i in range(versCou):
+        if vUsedList[i] == 0:
+            shape.remove_control_point(i)
 
     shape.end_removing_control_points()
-
-    # 元の選択モードに戻す.
-    scene.selection_mode = oldSelectionMode
-
-    # 形状編集モードから抜ける.
-    scene.exit_modify_mode()
 
 # -----------------------------------------------.
 # 2つの直線の交点を計算。 (x, y, z)の要素のZは0.0とする.
@@ -55,7 +38,7 @@ def cleanupMeshVertices (shape):
 # -----------------------------------------------.
 def calcLinesCrossPos (pA1, pA2, pB1, pB2):
     dV = (pA2[1]-pA1[1]) * (pB2[0]-pB1[0]) - (pA2[0]-pA1[0]) * (pB2[1]-pB1[1])
-    if math.fabs(dV) < 1e-6:
+    if math.fabs(dV) < 1e-5:
         return pA2
 
     d1 = pB1[1] * pB2[0] - pB1[0] * pB2[1]
@@ -67,6 +50,23 @@ def calcLinesCrossPos (pA1, pA2, pB1, pB2):
     fy /= dV
 
     return numpy.array([fx, fy, 0.0])
+
+# -----------------------------------------------.
+# 頂点座標の配列から、バウンディングボックスサイズを計算.
+# -----------------------------------------------.
+def calcBondingBoxSize (versList):
+    if len(versList) == 0:
+        return [0.0, 0.0]
+    minX = maxX = versList[0][0]
+    minY = maxY = versList[0][1]
+
+    for p in versList:
+        minX = min(minX, p[0])
+        maxX = max(maxX, p[0])
+        minY = min(minY, p[1])
+        maxY = max(maxY, p[1])
+    
+    return [maxX - minX, maxY - minY]
 
 # -----------------------------------------------.
 # ポリゴンメッシュをワイヤーフレームに変換.
@@ -93,20 +93,38 @@ def convMeshToWireframe (shape, lineWidth):
         # (x,y,z)が面法線相当.
         fNormal = shape.get_plane_equation(fLoop)
 
+        # 頂点座標を一時格納.
+        vIndices = faceD.vertex_indices
+        versIndices = []
+        vers = []
+        fCenterPos = numpy.array([0.0, 0.0, 0.0])
+        for i in range(fvCou):
+            p = shape.vertex(vIndices[i]).position
+            p = numpy.array([p[0], p[1], p[2]])
+            fCenterPos += p
+            vers.append(p)
+            versIndices.append(vIndices[i])
+        fCenterPos /= float(fvCou)
+
         # 法線座標系への変換行列。Z軸方向を法線とする.
+        xV = numpy.array([0.0, 0.0, 0.0])
+        minLenV = -1.0
+        for i in range(fvCou):
+            xV = vers[(i + 1) % fvCou] - vers[i]
+            lenV = numpy.linalg.norm(xV)
+            if minLenV < 0.0 and lenV > fMinDist:
+                xV /= lenV
+                minLenV = lenV
+                break
+        if minLenV < 0.0:
+            continue
+
         normalV = numpy.array([fNormal[0], fNormal[1], fNormal[2]])
         fnMatrix = numpy.matrix(numpy.identity(4))
-        xV = numpy.array([0.0, 0.0, 0.0])
         yV = numpy.array([0.0, 0.0, 0.0])
         zV = normalV
-        if math.fabs(fNormal[1]) > 0.1:
-            xV = numpy.array([1.0, 0.0, 0.0])
-            xV  = numpy.cross(normalV, xV)
-            yV  = numpy.cross(normalV, xV)
-        else :
-            xV = numpy.array([0.0, 1.0, 0.0])
-            xV  = numpy.cross(normalV, xV)
-            yV  = numpy.cross(normalV, xV)
+        xV  = numpy.cross(normalV, xV)
+        yV  = numpy.cross(normalV, xV)
 
         lenV = numpy.linalg.norm(xV)
         if lenV == 0.0:
@@ -129,20 +147,7 @@ def convMeshToWireframe (shape, lineWidth):
 
         fnMatrixInv = fnMatrix.I
 
-        # 頂点座標を一時格納.
-        vIndices = faceD.vertex_indices
-        versIndices = []
-        vers = []
-        fCenterPos = numpy.array([0.0, 0.0, 0.0])
-        for i in range(fvCou):
-            p = shape.vertex(vIndices[i]).position
-            p = numpy.array([p[0], p[1], p[2]])
-            fCenterPos += p
-            vers.append(p)
-            versIndices.append(vIndices[i])
-        fCenterPos /= float(fvCou)
-
-        # 頂点間の距離がfMinDistよりも小さい場合はスキップ.
+        # 頂点間の距離がfMinDistよりも小さい場合は重複とみなして頂点を削除.
         removeI = []
         for i in range(fvCou):
             p0 = vers[i]
@@ -177,19 +182,12 @@ def convMeshToWireframe (shape, lineWidth):
             fCenter += vers[i]
         fCenter /= float(fvCou)
 
-        # エッジ間の最小距離を計算し、lineWidthの値を調整.
-        lineWidth2 = lineWidth
-        for i in range(fvCou):
-            e0 = i
-            e1 = (i + 1) % fvCou
-            p0 = vers[e0]
-            p1 = vers[e1]
-            p0_2 = numpy.array([p0[0], p0[1], 0.0])
-            p1_2 = numpy.array([p1[0], p1[1], 0.0])
-            dirV = p1_2 - p0_2
-            lenV = numpy.linalg.norm(dirV) * 0.2
-            if lineWidth2 > lenV:
-                lineWidth2 = lenV
+        # バウンディングボックスサイズを計算.
+        fBBoxSize = calcBondingBoxSize(vers)
+        bbMinLen = min(fBBoxSize[0], fBBoxSize[1])
+
+        # lineWidthの値を調整.
+        lineWidth2 = min(lineWidth, bbMinLen * 0.3)
 
         # エッジを内側にlineWidth2分シフト.
         tmpVers = []
@@ -261,7 +259,8 @@ def convMeshToWireframe (shape, lineWidth):
         # 新しいメッシュに頂点/面情報を格納.
         fIPos = 0
         fIndex = [0, 0, 0, 0]
-        for fLoop in range(len(faceOrgIndicesList)):
+        facesCou = len(faceOrgIndicesList)
+        for fLoop in range(facesCou):
             versOrgIndices = faceOrgIndicesList[fLoop]
 
             newVers = newVersList[fLoop]
@@ -282,10 +281,11 @@ def convMeshToWireframe (shape, lineWidth):
         scene.end_polygon_mesh()
         pMesh.make_edges()   # 稜線を生成.
         pMesh.cleanup_redundant_vertices()  # 重複頂点を削除.
-        scene.end_creating()
 
         # 面に属さない頂点を削除.
         cleanupMeshVertices(pMesh)
+
+        scene.end_creating()
 
         # 元の形状を隠す.
         shape.render_flag = 0
