@@ -35,6 +35,7 @@
 |[EnumLinePoints.py](./EnumLinePoints.py)|線形状のコントロールポイント情報を表示|
 |[Calc2PointsLength.py](./Calc2PointsLength.py)|選択された2つの頂点(コントロールポイント)の長さを計算|
 |[MeshToWireframe.py](./MeshToWireframe.py)|ポリゴンメッシュをワイヤーフレームに変換|
+|[OptimizeMeshVertices.py](./OptimizeMeshVertices.py)|ポリゴンメッシュの直線を構成する頂点を除去し最適化|
 
 ## 表面材質関連
 
