@@ -105,9 +105,3 @@ activeShape = scene.active_shape()
 if createMeshCubeWithCubemap(activeShape) == None:
     print 'キューブマップのマスターイメージを選択してください。'
 
-
-
-
-
-
-
