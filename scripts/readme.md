@@ -37,7 +37,7 @@
 |[MeshToWireframe.py](./MeshToWireframe.py)|ポリゴンメッシュをワイヤーフレームに変換|
 |[OptimizeMeshVertices.py](./OptimizeMeshVertices.py)|ポリゴンメッシュの直線を構成する頂点を除去し最適化|
 |[ClearMeshVertexColorLayers.py](./ClearMeshVertexColorLayers.py)|ポリゴンメッシュの頂点カラーレイヤをまとめて削除|
-
+|[CreateCubemapCube.py](./CreateCubemapCube.py)|キューブマップテクスチャより、キューブマップを貼った立方体を作成|
 
 ## 表面材質関連
 
