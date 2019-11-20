@@ -154,6 +154,15 @@ def cleanupMeshVertices (shape):
 
     removeFaceList = []
 
+    # 各頂点が共有する面の数を保持.
+    verFacesCouList = [0] * versCou
+    for fLoop in range(facesCou):
+        f = shape.face(fLoop)
+        vCou = f.number_of_vertices
+        for i in range(vCou):
+            vIndex = f.vertex_indices[i]
+            verFacesCouList[vIndex] += 1
+
     for fLoop in range(facesCou):
         f = shape.face(fLoop)
 
@@ -175,8 +184,9 @@ def cleanupMeshVertices (shape):
         for i in range(vCou):
             vIndex1 = (maxVIndex + i + 1 + vCou) % vCou
 
+            vI1 = f.vertex_indices[vIndex1]
             p0 = shape.vertex(f.vertex_indices[vIndex0]).position
-            p1 = shape.vertex(f.vertex_indices[vIndex1]).position
+            p1 = shape.vertex(vI1).position
             p0 = numpy.array([p0[0], p0[1], p0[2]])
             p1 = numpy.array([p1[0], p1[1], p1[2]])
             lenV = numpy.linalg.norm(p1 - p0)
@@ -197,7 +207,7 @@ def cleanupMeshVertices (shape):
             vDir1 = (p1 - p0) / lenV
             vDir2 = (p2 - p1) / lenV2
             cAngleV = math.fabs(numpy.dot(vDir1, vDir2))
-            if cAngleV > 0.99:
+            if cAngleV > 0.99 and verFacesCouList[vI1] <= 2:
                 fVIndexList[vIndex1] = -1
                 chkF = True
                 continue
