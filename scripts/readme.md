@@ -38,6 +38,7 @@
 |[OptimizeMeshVertices.py](./OptimizeMeshVertices.py)|ポリゴンメッシュの直線を構成する頂点を除去し最適化|
 |[ClearMeshVertexColorLayers.py](./ClearMeshVertexColorLayers.py)|ポリゴンメッシュの頂点カラーレイヤをまとめて削除|
 |[CreateCubemapCube.py](./CreateCubemapCube.py)|キューブマップテクスチャより、キューブマップを貼った立方体を作成|
+|[SelectMeshBoxes.py](./SelectMeshBoxes.py)|ポリゴンメッシュ内の直方体要素を選択|
 
 ## 表面材質関連
 
