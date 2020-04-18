@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget>
+	<uuid>3481336a-adcb-4425-a89e-e1bc1d16254d</uuid>
+	<name lang="ja">ファイルダイアログボックスを表示</name>
+	<name lang="en"></name>
+	<url>index.html</url>
+	<version>1.0</version>
+	<description lang="ja">ファイルダイアログボックスを表示</description>
+	<description lang="en">Show File Dialog Box.</description>
+	<window initial_size="470 400"
+		position="0.42 0.63"
+		resizeable="true">
+	</window>
+</widget>
+
