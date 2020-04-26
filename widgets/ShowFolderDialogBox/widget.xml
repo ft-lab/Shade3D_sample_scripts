@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget>
+	<uuid>95fd4c25-1008-4ed0-b9f8-6213818becc3</uuid>
+	<name lang="ja">フォルダ選択ダイアログボックスを表示</name>
+	<name lang="en"></name>
+	<url>index.html</url>
+	<version>1.0</version>
+	<description lang="ja">フォルダ選択ダイアログボックスを表示</description>
+	<description lang="en">Show Folder Dialog Box.</description>
+	<window initial_size="470 400"
+		position="0.42 0.63"
+		resizeable="true">
+	</window>
+</widget>
+

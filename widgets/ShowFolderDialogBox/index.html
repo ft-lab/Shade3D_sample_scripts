@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<script src="./readExternalFile.js"></script>
+
+<script type="text/javascript">
+	/**
+	 * フォルダを選択.
+	 */
+	function selectFolder () {
+		// フォルダ選択ダイアログボックスを表示し、パスをreturnに返す.
+		py_src = readFileToString('./showFolderDialogBox.py');
+		folderPathStr = window.external.setScript(py_src);
+		if (folderPathStr === undefined) pathStr = "";
+
+		// パスを表示.
+		document.getElementById('result_folder_path').textContent = folderPathStr;
+	}
+</script>
+
+</head>
+
+<body>
+
+<h3>フォルダ選択ダイアログボックスを表示</h3>
+<hr>
+<form method="POST" name="form" action="">
+	フォルダ選択ダイアログボックスを出します。<br>
+	<input type="button" value="フォルダの選択 ..." onclick="selectFolder();"><br><br>
+	Path : <span id="result_folder_path"></span><br>
+	<hr />
+</form>
+
+</body>
+</html>
