@@ -76,3 +76,11 @@
 |ファイル名|内容|
 |--|--|
 |[ExportCubemapTextures.py](./ExportCubemapTextures.py)|キューブマップテクスチャを生成して出力|
+
+## ファイル入出力
+
+|ファイル名|内容|
+|--|--|
+|[FileOpen.py](./FileOpen.py)|ファイルダイアログボックスを表示し、テキストファイルの内容をメッセージウィンドウに表示|
+|[FileSave.py](./FileSave.py)|テキストファイルの内容をファイル保存|
+
