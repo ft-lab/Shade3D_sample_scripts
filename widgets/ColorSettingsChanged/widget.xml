@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget>
+	<uuid>b6c33616-e23f-4914-a9dc-5f0218d169d1</uuid>
+	<name lang="ja">環境設定の色変更の反映</name>
+	<name lang="en"></name>
+	<url>index.html</url>
+	<version>1.0</version>
+	<description lang="ja">環境設定の色変更の反映</description>
+	<description lang="en">Reflection of the color change of the environment setting.</description>
+	<window initial_size="470 400"
+		position="0.42 0.63"
+		resizeable="true">
+	</window>
+</widget>
+

@@ -7,4 +7,5 @@
 |[ShowMessageBox](./ShowMessageBox)|Shade3Dでのメッセージボックスを表示|
 |[ShowFileDialogBox](./ShowFileDialogBox)|Shade3Dでファイルダイアログボックスを表示し、JSON/TEXTファイルの内容をテキストエリアに表示|
 |[ShowFolderDialogBox](./ShowFolderDialogBox)|Shade3D ver.17以降で対応。Shade3Dでフォルダ選択ダイアログボックスを表示|
+|[ColorSettingsChanged](./ColorSettingsChanged)|環境設定でのウィンドウ配色を動的に取得し、ウィジットの背景とテキスト色を変更|
 

@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<script src="./readExternalFile.js"></script>
+
+<script type="text/javascript">
+	// ---------------------------------------------.
+	// 背景色とテキスト色を環境設定から取得し、変更.
+	// ---------------------------------------------.
+	function change_colors_from_shade3d_env () {
+		// Shade3Dの色を、{"text": "#ffffff", "background": "#707070"} の形で取得.
+		py_src = readFileToString('./getEnvironmentColor.py');
+		retStr = window.external.setScript(py_src);
+		if (retStr != "") {
+			// JSON文字列を変換.
+			retV = JSON.parse(retStr);
+
+			// 背景色を変更.
+			document.getElementById("body").style.backgroundColor = retV["background"];
+
+			// テキスト色を変更.
+			document.getElementById("body").style.color = retV["text"];
+		}
+	}
+
+	// ---------------------------------------------.
+	// 初期化時に呼ばれる.
+	// ---------------------------------------------.
+	function initialize () {
+		change_colors_from_shade3d_env();
+	}
+
+	// ---------------------------------------------.
+	// Shade3Dでの環境設定の色が変更された場合に呼ばれる.
+	// ---------------------------------------------.
+	function color_settings_changed () {
+		change_colors_from_shade3d_env();
+	}
+</script>
+
+</head>
+
+<body id="body" onload="initialize()">
+	<h3>色変更の反映</h3>
+	<hr>
+	環境設定の色が変更された場合に、<br>
+	ウィジットの背景とテキスト色を更新します。<br>
+	<hr>
+</body>
+</html>
