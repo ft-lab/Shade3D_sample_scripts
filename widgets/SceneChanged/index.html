@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<script src="./readExternalFile.js"></script>
+
+<script type="text/javascript">
+	// ---------------------------------------------.
+	// 初期化時に呼ばれる.
+	// ---------------------------------------------.
+	function initialize () {
+		document.getElementById('result_message').textContent = "----";
+	}
+
+	// ---------------------------------------------.
+	// Shade3Dでシーンが変更された場合に呼ばれる.
+	// ---------------------------------------------.
+	function active_scene_changed () {
+		// シーン情報を取得.
+		var py_src = readFileToString('./getSceneInfo.py');
+		var resultStr = window.external.setScript(py_src);
+		if (resultStr === undefined) resultStr = "";
+
+		document.getElementById('result_message').textContent = 'シーンファイル名 : ' + resultStr;
+	}
+</script>
+
+</head>
+
+<body id="body" onload="initialize()">
+	<h3>シーン変更の反映</h3>
+	<hr>
+	シーンが変更された場合に、シーンファイル名を表示します。<br><br>
+	<span id="result_message"></span><br>
+	<hr>
+</body>
+</html>

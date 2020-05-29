@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget>
+	<uuid>5e2c5215-e24c-4705-a5a2-83bf689f0f66</uuid>
+	<name lang="ja">シーン変更の反映</name>
+	<name lang="en"></name>
+	<url>index.html</url>
+	<version>1.0</version>
+	<description lang="ja">シーン変更の反映</description>
+	<description lang="en">Scene changed.</description>
+	<window initial_size="470 400"
+		position="0.42 0.63"
+		resizeable="true">
+	</window>
+</widget>
+
