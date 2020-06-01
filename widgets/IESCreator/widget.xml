@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget>
+	<uuid>c5736040-b593-42bc-ad58-60ba16a39d11</uuid>
+	<name lang="ja">IES Creator</name>
+	<name lang="en"></name>
+	<url>index.html</url>
+	<version>1.0</version>
+	<description lang="ja">IES Creator</description>
+	<description lang="en">IES Creator</description>
+	<window initial_size="470 400"
+		position="0.42 0.63"
+		resizeable="true">
+	</window>
+</widget>
+

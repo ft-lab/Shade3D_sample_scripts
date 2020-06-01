@@ -1,0 +1,464 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<link rel="stylesheet" type="text/css" href="./style.css" />
+<script src="./js/readExternalFile.js"></script>
+<script src="./js/drawLightDistributionCurve.js"></script>
+<script src="./js/drawLightDistributionPreview.js"></script>
+
+<style>
+#graph_canvas {
+	background: #052005;
+}
+#preview_canvas {
+	background: #000000;
+}
+#lightDistributionCurve_canvas {
+	background: #c0c0c0;
+}
+</style>
+
+<script type="text/javascript">
+	// グラフ部のサイズ.
+	var graph_width = 408;
+	var graph_height = 250;
+
+	// プレビュー部のサイズ.
+	var preview_width = 200;
+	var preview_height = 200;
+
+	// プレビューでのピクセルごとのimage.
+	var previewImage = null;
+
+	// 度数ごとの明るさの値 (0-90).
+	var lightIntensityA = new Array(90 + 1);
+
+	// ランプ光束 (lm).
+	var lampLuminousFlux = 1000.0;
+
+	// グラフ上の最大光度 (cd).
+	var maxLuminousIntensity = 500.0;
+
+	// 光度にかける倍率.
+	var luminousIntensityScale = 1.0;
+
+	// プレビューの輝度.
+	var previewBrightness = 1.0;
+
+	// 配光のプレビュークラス.
+	var drawLightDistributionPreview = null;
+
+	// 配光曲線を描画するクラス.
+	var drawLightDistributionCurve = null;
+
+	// ---------------------------------------------.
+	// 初期化時に呼ばれる.
+	// ---------------------------------------------.
+	function initialize () {
+		// プレビューでのクリックイベントを割り当て.
+		var canvas = document.getElementById("graph_canvas");
+		canvas.addEventListener('click', onClickCanvas, false);
+
+		// パラメータの更新.
+		document.getElementById("param_lampLuminousFlux").value = lampLuminousFlux.toString();
+		document.getElementById("param_maxLuminousIntensity").value = maxLuminousIntensity.toString();
+		document.getElementById("param_previewBrightness").value = previewBrightness.toString();
+		document.getElementById("param_luminousIntensityScale").value = luminousIntensityScale.toString();
+
+		// 配光プレビューを描画するクラス.
+		{
+			var canvas = document.getElementById("preview_canvas");
+			drawLightDistributionPreview = new DrawLightDistributionPreview(canvas, lightIntensityA);
+		}
+
+		// 配光曲線を描画するクラス.
+		{
+			var canvas = document.getElementById("lightDistributionCurve_canvas");
+			drawLightDistributionCurve = new DrawLightDistributionCurve(canvas, lightIntensityA);
+		}
+
+		// 明るさの初期化.
+		initLightIntensity(500.0);
+
+		// グラフを更新.
+		updateGraph();
+
+		// 配光曲線を更新.
+		drawLightDistributionCurve.setMaxLuminousIntensity(maxLuminousIntensity);
+		drawLightDistributionCurve.setLampLuminousFlux(lampLuminousFlux);
+		drawLightDistributionCurve.setLuminousIntensityScale(luminousIntensityScale);
+		drawLightDistributionCurve.setLightIntensityList(lightIntensityA);
+		drawLightDistributionCurve.draw();
+
+		// プレビューを更新.
+		drawLightDistributionPreview.setMaxLuminousIntensity(maxLuminousIntensity);
+		drawLightDistributionPreview.setLampLuminousFlux(lampLuminousFlux);
+		drawLightDistributionPreview.setLuminousIntensityScale(luminousIntensityScale);
+		drawLightDistributionPreview.setLightIntensityList(lightIntensityA);
+		drawLightDistributionPreview.draw();
+	}
+
+	// ---------------------------------------------.
+	// 明るさの配列を初期化.
+	// ---------------------------------------------.
+	function initLightIntensity (maxV) {
+		var cou = 90;
+		var pos = 0.0;
+		var dV = 1.0 / parseFloat(cou);
+		for (var i = 0; i <= cou; i++) {
+			var p = (1.0 - Math.pow(pos, 1.6));
+			lightIntensityA[i] = p * maxV;
+			pos += dV;
+		}
+
+		// ランダムに揺らすテスト.
+		var vD = 800.0 / parseFloat(cou);
+		var vP = 0.0;
+		for (var i = 0; i < cou; ++i) {
+			var v2 = Math.sin(vP * Math.PI / 180.0);
+			v2 = (1.0 + v2) * 0.5;
+			lightIntensityA[i] = Math.max(0.0, lightIntensityA[i] - v2 * maxV * 0.2);
+			vP += vD;
+		}
+	}
+
+	// ---------------------------------------------.
+	// 小数点の指定ケタ数までを文字列化.
+	// ---------------------------------------------.
+	function getFloatToString (fVal, sCou) {
+		var scale = Math.pow(10.0, sCou);
+		fI = parseInt(fVal * scale);
+		var fVal2 = parseFloat(fI) / scale; 
+		return fVal2.toString();
+	}
+
+	// ---------------------------------------------.
+	// GraphのCanvasを更新.
+	// ---------------------------------------------.
+	function updateGraph () {
+		var canvas = document.getElementById("graph_canvas");
+		var context = canvas.getContext("2d");
+
+		// 背景塗りつぶし.
+		context.fillStyle = "#052005";
+		context.fillRect(0, 0, graph_width, graph_height);
+
+		var hMargin = 32;
+		var vMargin = 24;
+		var dWidth  = graph_width - hMargin * 2;
+		var dHeight = graph_height - vMargin * 2;
+
+		// マス目を描画.
+		// 横軸が角度 (0-90).
+		// 縦軸は明るさ (cd).
+		context.lineWidth = 0.5;
+		var mCol = '#408040';
+		var xCou = 9;
+		var yCou = 10;
+		var dx = parseFloat(dWidth) / parseFloat(xCou);
+		var dy = parseFloat(dHeight) / parseFloat(yCou);
+		var px = 0.0;
+		for (var i = 0; i <= xCou; i++) {
+			context.beginPath();
+			context.strokeStyle = mCol;
+			context.moveTo(hMargin + px, vMargin);
+			context.lineTo(hMargin + px, dHeight + vMargin);
+			context.stroke();
+			px += dx;
+		}
+
+		var py = dHeight + vMargin;
+		for (var i = 0; i <= yCou; i++) {
+			context.beginPath();
+			context.strokeStyle = mCol;
+			context.moveTo(hMargin, py);
+			context.lineTo(graph_width - hMargin, py);
+			context.stroke();
+			py -= dy;
+		}
+
+		// 水平の目盛りを描画.
+		{
+			context.font = "8pt Arial";
+			context.fillStyle = '#ffffff';
+
+			px = hMargin * 0.8;
+			py = dHeight + vMargin + vMargin * 0.8;
+			for (var i = 0; i <= xCou; i++) {
+				var str = (i * 10).toString();
+				context.fillText(str, px, py);
+				px += dx;
+			}
+			context.fillText("(度)", hMargin + dWidth + hMargin * 0.3, py);
+		}
+
+		// 垂直の目盛りを描画.
+		{
+			context.font = "8pt Arial";
+			context.fillStyle = '#ffffff';
+
+			px = hMargin - 4;
+			py = dHeight + vMargin + 6 - dy;
+			var dVal = maxLuminousIntensity / parseFloat(yCou);
+			var lVal = dVal;
+			for (var i = 1; i <= yCou; i++) {
+				var str = getFloatToString(lVal, 2);
+				context.textAlign = "right";
+				context.fillText(str, px, py);
+				py -= dy;
+				lVal += dVal;
+			}
+
+			context.fillText("(cd)", px, 8 + 6);
+		}
+
+		// グラフを描画.
+		{
+			context.lineWidth = 1.0;
+			context.beginPath();
+			context.strokeStyle = '#ffffff';
+
+			var cou = lightIntensityA.length;
+			px = hMargin;
+			dx = dWidth / parseFloat(cou - 1);
+			py = 0.0;
+			var scale = parseFloat(dHeight);
+			var prevY = 0.0; 
+			for (var i = 0; i <= cou; i++, px += dx) {
+				py = dHeight + vMargin;
+				py -= lightIntensityA[i] * scale / maxLuminousIntensity;
+				if (py < vMargin) py = vMargin;
+				if (i == 0) {
+					context.moveTo(px, py);
+					continue;
+				}
+				context.lineTo(px, py);
+			}
+			context.stroke();
+		}
+	}
+
+	// ---------------------------------------------.
+	//  初期化.
+	// ---------------------------------------------.
+	function initIES () {
+		// 明るさの初期化.
+		initLightIntensity(500.0);
+
+		// グラフを更新.
+		updateGraph();
+
+		// 配光曲線を更新.
+		drawLightDistributionCurve.setMaxLuminousIntensity(maxLuminousIntensity);
+		drawLightDistributionCurve.setLampLuminousFlux(lampLuminousFlux);
+		drawLightDistributionCurve.setLuminousIntensityScale(luminousIntensityScale);
+		drawLightDistributionCurve.draw();
+
+		// プレビューを更新.
+		drawLightDistributionPreview.setMaxLuminousIntensity(maxLuminousIntensity);
+		drawLightDistributionPreview.setLampLuminousFlux(lampLuminousFlux);
+		drawLightDistributionPreview.setLuminousIntensityScale(luminousIntensityScale);
+		drawLightDistributionPreview.draw();
+	}
+
+	// ---------------------------------------------.
+	// IESファイルを読み込み.
+	// ---------------------------------------------.
+	function loadIESFile () {
+		var py_src = readFileToString('./py/loadIES.py');
+		var resultStr = window.external.setScript(py_src);
+		if (resultStr != undefined && resultStr != "") {
+			// 連想配列に変換.
+			var rData = JSON.parse(resultStr);
+			if (rData["errorMessage"] != "") {
+				window.alert(rData["errorMessage"]);
+				return;
+			}
+
+			var angleList     = rData["angleList"];
+			var intensityList = rData["intensityList"];
+			var vCou = intensityList.length;
+
+			// ランプ光束の更新.
+			lampLuminousFlux = parseFloat(rData["lampLuminousFlux"]);
+			document.getElementById("param_lampLuminousFlux").value = lampLuminousFlux.toString();
+
+			// 光度にかける倍率の更新.
+			luminousIntensityScale = parseFloat(rData["luminousIntensityScale"]);
+			document.getElementById("param_luminousIntensityScale").value = luminousIntensityScale.toString();
+
+			// 光度の配列を更新.
+			lightIntensityA = new Array(vCou);
+			for (var i = 0; i < vCou; ++i) {
+				lightIntensityA[i] = intensityList[i];
+			}
+
+			// グラフを更新.
+			updateGraph();
+
+			// 配光曲線を更新.
+			drawLightDistributionCurve.setMaxLuminousIntensity(maxLuminousIntensity);
+			drawLightDistributionCurve.setLampLuminousFlux(lampLuminousFlux);
+			drawLightDistributionCurve.setLuminousIntensityScale(luminousIntensityScale);
+			drawLightDistributionCurve.setLightIntensityList(lightIntensityA);
+			drawLightDistributionCurve.draw();
+
+			// プレビューを更新.
+			drawLightDistributionPreview.setMaxLuminousIntensity(maxLuminousIntensity);
+			drawLightDistributionPreview.setLampLuminousFlux(lampLuminousFlux);
+			drawLightDistributionPreview.setLuminousIntensityScale(luminousIntensityScale);
+			drawLightDistributionPreview.setLightIntensityList(lightIntensityA);
+			drawLightDistributionPreview.draw();
+		}
+	}
+
+	// ---------------------------------------------.
+	// IESファイルを保存.
+	// ---------------------------------------------.
+	function saveIESFile () {
+		var paramStr = "";
+		paramStr += "lampLuminousFlux=" + lampLuminousFlux.toString() + "\n";
+		paramStr += "luminousIntensityScale=" + luminousIntensityScale.toString() + "\n";
+		paramStr += "intensityList=[" + lightIntensityA.toString() + "]\n";
+		var py_src = readFileToString('./py/saveIES.py');
+
+		var resultStr = window.external.setScript(paramStr + py_src);
+		if (resultStr != undefined && resultStr != "") {
+			window.alert(resultStr);
+		}
+	}
+
+	// ---------------------------------------------.
+	// グラフ描画のCanvasがクリックされた.
+	// ---------------------------------------------.
+	function onClickCanvas (e) {
+		var table = document.getElementById("table");
+		var canvas = document.getElementById("graph_canvas");
+		var px = table.offsetLeft + canvas.offsetLeft;
+		var py = table.offsetTop + canvas.offsetTop;
+
+		var mx = e.clientX - px;
+  		var my = e.clientY - py;
+		//window.alert(mx.toString() + ", " + my.toString());
+	}
+
+	// ---------------------------------------------.
+	// ランプ光束が変更された.
+	// ---------------------------------------------.
+	function changeLampLuminousFlux () {
+		lampLuminousFlux = parseFloat(document.getElementById("param_lampLuminousFlux").value);
+
+		// グラフを更新.
+		updateGraph();
+
+		// 配光曲線を更新.
+		drawLightDistributionCurve.setLampLuminousFlux(lampLuminousFlux);
+		drawLightDistributionCurve.draw();
+
+		// プレビューを更新.
+		drawLightDistributionPreview.setLampLuminousFlux(lampLuminousFlux);
+		drawLightDistributionPreview.draw();
+	}
+
+	// ---------------------------------------------.
+	// 光度倍率が変更された.
+	// ---------------------------------------------.
+	function changeLuminousIntensityScale () {
+		luminousIntensityScale = parseFloat(document.getElementById("param_luminousIntensityScale").value);
+
+		// グラフを更新.
+		updateGraph();
+
+		// 配光曲線を更新.
+		drawLightDistributionCurve.setLuminousIntensityScale(luminousIntensityScale);
+		drawLightDistributionCurve.draw();
+
+		// プレビューを更新.
+		drawLightDistributionPreview.setLuminousIntensityScale(luminousIntensityScale);
+		drawLightDistributionPreview.draw();
+	}
+
+
+	// ---------------------------------------------.
+	// 最大光度が変更された.
+	// ---------------------------------------------.
+	function changeMaxLuminousIntensity () {
+		maxLuminousIntensity = parseFloat(document.getElementById("param_maxLuminousIntensity").value);
+
+		// 配光曲線クラスに最大光度を渡す.
+		drawLightDistributionCurve.setMaxLuminousIntensity(maxLuminousIntensity);
+		drawLightDistributionPreview.setMaxLuminousIntensity(maxLuminousIntensity);
+
+		// グラフを更新.
+		updateGraph();
+
+		// 配光曲線を更新.
+		drawLightDistributionCurve.draw();
+
+		// プレビューを更新.
+		drawLightDistributionPreview.draw();
+	}
+
+	// ---------------------------------------------.
+	// プレビュー輝度が変更された.
+	// ---------------------------------------------.
+	function changePreviewBrightness () {
+		previewBrightness = parseFloat(document.getElementById("param_previewBrightness").value);
+
+		// プレビューを更新.
+		drawLightDistributionPreview.setBrightness(previewBrightness);
+		drawLightDistributionPreview.draw();
+	}
+</script>
+
+</head>
+
+<!-- ----------------------------------------------------- -->
+<!-- HTML                                                  -->
+<!-- ----------------------------------------------------- -->
+<body onload="initialize()">
+	<h3>IES Creator</h3>
+	<hr>
+	配光のIESファイルを作成/編集するツールです。<br><br>
+	<table border=0>
+		<tr>
+			<td valign="top"><canvas id="graph_canvas" width="408" height="250"></canvas></td>
+			<td rawspan=2 valign="top">
+				<hr />
+				<form method="POST" name="form" action="">
+					<table border=0>
+						<tr>
+							<td>ランプ光束 (lm) : </td><td><input type="text" value="" id="param_lampLuminousFlux" onChange="changeLampLuminousFlux()" /></td>
+						</tr>
+						<tr>
+							<td>光度の倍率 : </td><td><input type="text" value="" id="param_luminousIntensityScale" onChange="changeLuminousIntensityScale()" /></td>
+						</tr>
+
+						<tr>
+							<td>最大光度 (cd) : </td><td><input type="text" value="" id="param_maxLuminousIntensity" onChange="changeMaxLuminousIntensity()"/></td>
+						</tr>
+						<tr>
+							<td>プレビュー輝度 : </td><td><input type="text" value="" id="param_previewBrightness" onChange="changePreviewBrightness()"/></td>
+						</tr>
+					</table>
+					<input type="button" value=" 初期化 " class="button" onClick="initIES()" /><br>
+					<input type="button" value=" IESの読み込み ... " class="button" onClick="loadIESFile()" /><br>
+					<input type="button" value=" IESの保存 ... " class="button" onClick="saveIESFile()" /><br>
+				</form>
+				<hr />
+			</td>
+		</tr>
+		<tr>
+			<td valign="top" nowrap>
+				<canvas id="lightDistributionCurve_canvas" width="200" height="200"></canvas>&nbsp;
+				<canvas id="preview_canvas" width="200" height="200"></canvas>
+			</td>
+		</tr>
+	</table>
+	<span id="debug_msg"></span><br>
+	<hr />
+</body>
+</html>
