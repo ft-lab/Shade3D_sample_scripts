@@ -1,0 +1,173 @@
+//---------------------------------------------------------.
+// グラフを描画するクラス.
+//---------------------------------------------------------.
+
+// @param[in] canvas               描画領域.
+// @param[in] lightAngleListA      角度のリスト (垂直).
+// @param[in] lightAngleListB      角度のリスト (水平).
+// @param[in] lightIntensityList   光度のリスト (水平 * 垂直分).
+var DrawEditGraph = function(canvas, lightAngleListA, lightAngleListB, lightIntensityList) {
+    this.canvas = canvas;
+    this.lightAngleListA    = lightAngleListA;
+    this.lightAngleListB    = lightAngleListB;
+    this.lightIntensityList = lightIntensityList;
+
+    this.lampLuminousFlux = 1000.0;             // ランプ光束.
+    this.luminousIntensityScale = 1.0;          // 光度にかける倍率.
+    this.maxLuminousIntensity = 500.0;          // 最大光度.
+
+	// 小数点の指定ケタ数までを文字列化.
+	this.getFloatToString = function (fVal, sCou) {
+        if (sCou == 0) {
+            return parseInt(fVal).toString();
+        }
+		var scale = Math.pow(10.0, sCou);
+		fI = parseInt(fVal * scale);
+		var fVal2 = parseFloat(fI) / scale; 
+		return fVal2.toString();
+    }
+};
+
+// ランプ光束を指定.
+DrawEditGraph.prototype.setLampLuminousFlux = function (intensityV) {
+    this.lampLuminousFlux = intensityV;
+};
+
+// 最大光度を指定.
+DrawEditGraph.prototype.setMaxLuminousIntensity = function (intensityV) {
+    this.maxLuminousIntensity = intensityV;
+};
+
+// 光度にかける倍率を指定.
+DrawEditGraph.prototype.setLuminousIntensityScale = function (scaleV) {
+    this.luminousIntensityScale = scaleV;
+};
+
+// 光度の配列を指定.
+DrawEditGraph.prototype.setLightIntensityList = function (lightAngleListA, lightAngleListB, lightIntensityList) {
+    this.lightAngleListA    = lightAngleListA;
+    this.lightAngleListB    = lightAngleListB;
+    this.lightIntensityList = lightIntensityList;
+};
+
+// 描画処理.
+DrawEditGraph.prototype.draw = function () {
+    var width  = this.canvas.width;
+    var height = this.canvas.height;
+
+    var context = this.canvas.getContext("2d");
+
+    // 背景塗りつぶし.
+    context.fillStyle = '#052005';
+    context.fillRect(0, 0, width, height);
+
+    var hMargin = 32;
+    var vMargin = 24;
+    var dWidth  = width - hMargin * 2;
+    var dHeight = height - vMargin * 2;
+
+    // マス目を描画.
+    // 横軸が角度.
+    // 縦軸は明るさ (cd).
+    context.lineWidth = 0.5;
+    var mCol = '#408040';
+    var xCou = 9;
+    var yCou = 10;
+    var dx = parseFloat(dWidth) / parseFloat(xCou);
+    var dy = parseFloat(dHeight) / parseFloat(yCou);
+    var px = 0.0;
+    for (var i = 0; i <= xCou; i++) {
+        context.beginPath();
+        context.strokeStyle = mCol;
+        context.moveTo(hMargin + px, vMargin);
+        context.lineTo(hMargin + px, dHeight + vMargin);
+        context.stroke();
+        px += dx;
+    }
+
+    var py = dHeight + vMargin;
+    for (var i = 0; i <= yCou; i++) {
+        context.beginPath();
+        context.strokeStyle = mCol;
+        context.moveTo(hMargin, py);
+        context.lineTo(width - hMargin, py);
+        context.stroke();
+        py -= dy;
+    }
+
+    // 水平の目盛りを描画.
+    {
+        context.font = "8pt Arial";
+        context.fillStyle = '#ffffff';
+
+        maxAngle = this.lightAngleListA[this.lightAngleListA.length - 1];
+        dAngle = maxAngle / parseFloat(xCou);
+
+        px = hMargin * 0.8;
+        py = dHeight + vMargin + vMargin * 0.8;
+        for (var i = 0; i <= xCou; i++) {
+            var str = this.getFloatToString(i * dAngle, 0);
+            context.fillText(str, px, py);
+            px += dx;
+        }
+        context.fillText("(度)", hMargin + dWidth + hMargin * 0.4, py);
+    }
+
+    // 垂直の目盛りを描画.
+    {
+        context.font = "8pt Arial";
+        context.fillStyle = '#ffffff';
+
+        px = hMargin - 4;
+        py = dHeight + vMargin + 6 - dy;
+        var dVal = this.maxLuminousIntensity / parseFloat(yCou);
+        var lVal = dVal;
+        for (var i = 1; i <= yCou; i++) {
+            var str = this.getFloatToString(lVal, 2);
+            context.textAlign = "right";
+            context.fillText(str, px, py);
+            py -= dy;
+            lVal += dVal;
+        }
+
+        context.fillText("(cd)", px, 8 + 6);
+    }
+
+    // グラフを描画.
+    {
+        context.lineWidth = 1.0;
+        context.beginPath();
+        context.strokeStyle = '#ffffff';
+
+        var posList = new Array();
+
+        var angleCou = this.lightAngleListA.length;
+        px = hMargin;
+        dx = dWidth / parseFloat(angleCou - 1);
+        py = 0.0;
+        var scale = parseFloat(dHeight);
+        var prevY = 0.0; 
+        for (var i = 0; i < angleCou; i++, px += dx) {
+            py = dHeight + vMargin;
+            py -= this.lightIntensityList[i] * scale / this.maxLuminousIntensity;
+            //if (py < vMargin) py = vMargin;
+            if (i == 0) {
+                context.moveTo(px, py);
+                continue;
+            }
+            context.lineTo(px, py);
+            posList.push([px, py]);
+        }
+        context.stroke();
+
+        // ポイントを描画.
+        {
+            context.fillStyle = '#ffff00';
+            var sizeV = 1;
+            for (var i = 0; i < posList.length; ++i) {
+                var pV = posList[i];
+                context.fillRect(pV[0] - sizeV, pV[1] - sizeV, sizeV + sizeV, sizeV + sizeV);
+            }
+        }
+    }
+}

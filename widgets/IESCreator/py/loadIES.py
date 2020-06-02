@@ -4,8 +4,9 @@
 # 以下はresultへの出力情報。JSONのデータとして返す.
 #   lampLuminousFlux       ランプ光束(lm).
 #   luminousIntensityScale 光度にかける倍率.
-#   angleList              度数の配列(90 + 1要素分).
-#   intensityList          光度の配列(90 + 1要素分).
+#   angleListA             度数の配列 (垂直).
+#   angleListB             度数の配列 (水平).
+#   intensityList          光度の配列 (水平 * 垂直分).
 # ----------------------------------------------------------.
 import json
 
@@ -16,7 +17,7 @@ dialog = xshade.create_dialog()
 filePath = dialog.ask_path(True, "IES(.ies)|ies")
 
 result = ''
-resultData = {"lampLuminousFlux" : 0.0, "luminousIntensityScale" : 1.0, "angleList" : [], "intensityList" : [], "errorMessage" : ""}
+resultData = {"lampLuminousFlux" : 0.0, "luminousIntensityScale" : 1.0, "angleListA" : [], "angleListB" : [], "intensityList" : [], "errorMessage" : ""}
 
 # IESファイルを読み込み.
 def loadIES (f):
@@ -24,8 +25,7 @@ def loadIES (f):
     chkIESNA = False
     errF = False
     for lineStr in f:
-        # 1行の改行コードを取り除く.
-        lineStr = lineStr.rstrip('\n')
+        # 1行の空白や改行コードを取り除く.
         lineStr = lineStr.strip()
         if lineStr == '':
             continue
@@ -46,6 +46,9 @@ def loadIES (f):
             continue
 
         if lineStr.find('[MANUFAC]') >= 0:
+            continue
+
+        if lineStr.find('[') >= 0:
             continue
 
         # 文字列を連結.
@@ -71,21 +74,34 @@ def loadIES (f):
     resultData["luminousIntensityScale"] = float(strList[2])
 
     # 垂直角度の数.
-    dCou = int(strList[3])
+    dCouA = int(strList[3])
+
+    # 水平角度の数.
+    dCouB = int(strList[4])
 
     # 要素数のチェック.
-    cou = 13 + dCou + 1 + dCou
+    cou = 13 + (dCouA + dCouB) + dCouA * dCouB
     if cou != len(strList):
-        resultData["errorMessage"] = '読み込みに失敗しました。'
+        resultData["errorMessage"] = '読み込みに失敗しました。' + str(cou) + " <> " + str(len(strList))
         return
 
-    # 配列に角度と光度値を入れる.
-    resultData["angleList"] = [0.0] * dCou
-    resultData["intensityList"] = [0.0] * dCou
+    # 配列に角度値を入れる.
+    resultData["angleListA"] = [0.0] * dCouA
+    resultData["angleListB"] = [0.0] * dCouB
 
-    for i in range(dCou):
-        resultData["angleList"][i] = float(strList[13 + i])
-        resultData["intensityList"][i] = float(strList[13 + dCou + 1 + i])
+    for i in range(dCouA):
+        resultData["angleListA"][i] = float(strList[13 + i])
+
+    for i in range(dCouB):
+        resultData["angleListB"][i] = float(strList[13 + dCouA + i])
+
+    # 配列に光度値を入れる.
+    resultData["intensityList"] = [0.0] * (dCouA * dCouB)
+    iPos = 0
+    for i in range(dCouB):
+        for j in range(dCouA):
+            resultData["intensityList"][iPos] = float(strList[13 + dCouA + dCouB + iPos])
+            iPos += 1
 
 if filePath != '':
     # ファイルパスをPythonで理解できるようにUTF-8から変換.
