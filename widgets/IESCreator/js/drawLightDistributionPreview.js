@@ -133,98 +133,54 @@ DrawLightDistributionPreview.prototype.draw = function () {
     var vAngleCou = this.lightAngleListA.length;
 
     // Imageを更新.
-    if (symmetryF) {
-        var iPos = 0;
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++) {
-                var px = parseFloat(x - centerX) / radius;
-                var py = parseFloat(y - centerY) / radius;
+    var hPos1 = 0;
+    var hPos2 = (this.lightAngleListB.length - 1) * vAngleCou;
+    var iPos = 0;
+    for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+            var px = parseFloat(x - centerX) / radius;
+            var py = parseFloat(y - centerY) / radius;
     
-                var lenV = Math.sqrt(px * px + py * py);
-                var dirX = px / lenV;
-                var dirY = py / lenV;
+            var lenV = Math.sqrt(px * px + py * py);
+            var dirX = px / lenV;
+            var dirY = py / lenV;
     
-                // (0, -1)を中心としたcosθの計算 (内積になる).
-                var intensity = 0.0;
-                var cosV = dirY;
-                if (cosV < 0.0) {	// 180度を超える場合.
-                    intensity = 0.0;
-                } else {
-                    // 度数に変換(0 - 90).
-                    var angleV = Math.acos(cosV) * 180.0 / Math.PI;
-                    angleV = Math.max(0.0, angleV);
-                    angleV = Math.min(90.0, angleV);
-    
-                    // angleVの位置での光度を取得.
-                    intensity = this.getAngleToIntensityA(angleV, 0);
-    
-                    intensity = intensity * this.luminousIntensityScale;
-                    intensity = (intensity * this.brightness) / maxV;
-    
-                    if (intensity > 0.0 && lenV > 0.0) {
-                        intensity = intensity / (lenV * lenV);
-                    }
-                    intensity = Math.max(0.0, intensity);
-                    intensity = Math.min(1.0, intensity);
-                }
-    
-                var iV = parseInt(intensity * 255.0);
-                this.previewImage.data[iPos + 0] = iV;
-                this.previewImage.data[iPos + 1] = iV;
-                this.previewImage.data[iPos + 2] = iV;
-                this.previewImage.data[iPos + 3] = 255;
-                iPos += 4;
-            }
-        }
-    } else {
-        // 左右非対称にする場合.
-        var hPos1 = 0;
-        var hPos2 = (this.lightAngleListB.length - 1) * vAngleCou;
-        var iPos = 0;
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++) {
-                var px = parseFloat(x - centerX) / radius;
-                var py = parseFloat(y - centerY) / radius;
-    
-                var lenV = Math.sqrt(px * px + py * py);
-                var dirX = px / lenV;
-                var dirY = py / lenV;
-    
-                // (0, -1)を中心としたcosθの計算 (内積になる).
-                var intensity = 0.0;
-                var cosV = dirY;
-                if (cosV < 0.0) {	// 180度を超える場合.
-                    intensity = 0.0;
-                } else {
-                    // 度数に変換(0 - 90).
-                    var angleV = Math.acos(cosV) * 180.0 / Math.PI;
-                    angleV = Math.max(0.0, angleV);
-                    angleV = Math.min(90.0, angleV);
+            // (0, -1)を中心としたcosθの計算 (内積になる).
+            var intensity = 0.0;
+            var cosV = dirY;
+            if (cosV < 0.0) {	// 180度を超える場合.
+                intensity = 0.0;
+            } else {
+                // 度数に変換(0 - 90).
+                var angleV = Math.acos(cosV) * 180.0 / Math.PI;
+                angleV = Math.max(0.0, angleV);
+                angleV = Math.min(90.0, angleV);
 
-                    var iOffset = 0;
+                var iOffset = 0;
+                if (!symmetryF) {   // 左右非対称にする場合.
                     if (dirX >= 0.0) iOffset = hPos1;
                     else iOffset = hPos2;
-    
-                    // angleVの位置での光度を取得.
-                    intensity = this.getAngleToIntensityA(angleV, iOffset);
-    
-                    intensity = intensity * this.luminousIntensityScale;
-                    intensity = (intensity * this.brightness) / maxV;
-    
-                    if (intensity > 0.0 && lenV > 0.0) {
-                        intensity = intensity / (lenV * lenV);
-                    }
-                    intensity = Math.max(0.0, intensity);
-                    intensity = Math.min(1.0, intensity);
                 }
     
-                var iV = parseInt(intensity * 255.0);
-                this.previewImage.data[iPos + 0] = iV;
-                this.previewImage.data[iPos + 1] = iV;
-                this.previewImage.data[iPos + 2] = iV;
-                this.previewImage.data[iPos + 3] = 255;
-                iPos += 4;
+                // angleVの位置での光度を取得.
+                intensity = this.getAngleToIntensityA(angleV, iOffset);
+    
+                intensity = intensity * this.luminousIntensityScale;
+                intensity = (intensity * this.brightness) / maxV;
+    
+                if (intensity > 0.0 && lenV > 0.0) {
+                    intensity = intensity / (lenV * lenV);
+                }
+                intensity = Math.max(0.0, intensity);
+                intensity = Math.min(1.0, intensity);
             }
+    
+            var iV = parseInt(intensity * 255.0);
+            this.previewImage.data[iPos + 0] = iV;
+            this.previewImage.data[iPos + 1] = iV;
+            this.previewImage.data[iPos + 2] = iV;
+            this.previewImage.data[iPos + 3] = 255;
+            iPos += 4;
         }
     }
 
