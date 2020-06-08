@@ -275,7 +275,29 @@ DrawLightDistributionCurve.prototype.draw = function () {
         
             curI += dI;
         }
+    }
 
+    // 角度値を描画.
+    {
+		context.font = "8pt Arial";
+		context.fillStyle = '#606060';
+		context.textAlign = "center";
+        context.textBaseline = "top";
+
+        var dist = parseFloat(width) * 0.46;
+        for (var angleV = 0.0; angleV <= 180.0; angleV += 30.0) {
+            var dV = (angleV - 90.0) * Math.PI / 180.0;
+            var dxS = Math.cos(dV);
+            var dyS = Math.sin(dV);
+            var dx = dxS * dist;
+            var dy = dyS * dist;
+            var cVal = parseInt(angleV).toString() + "°";
+            context.fillText(cVal, centerX + dx , centerY - dy);
+
+            if (Math.abs(angleV - 0.0) > 0.001 && Math.abs(angleV - 180.0) > 0.001) {
+                context.fillText(cVal, centerX - dx , centerY - dy);
+            }
+        }
     }
     
     // ランプ光束と倍率を描画.
@@ -288,8 +310,8 @@ DrawLightDistributionCurve.prototype.draw = function () {
         var strV = "ランプ光束 : " + this.lampLuminousFlux.toString() + " lm";
 		context.fillText(strV, 4, 4);
 
-        strV = "光度倍率 : x " + this.luminousIntensityScale.toString();
-		context.fillText(strV, 4, 4 + 12);
+        //strV = "光度倍率 : x " + this.luminousIntensityScale.toString();
+		//context.fillText(strV, 4, 4 + 12);
     }
 };
 

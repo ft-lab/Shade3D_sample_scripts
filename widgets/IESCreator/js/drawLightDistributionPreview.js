@@ -142,19 +142,30 @@ DrawLightDistributionPreview.prototype.draw = function () {
             var py = parseFloat(y - centerY) / radius;
     
             var lenV = Math.sqrt(px * px + py * py);
+            lenV = Math.max(0.01, lenV);
+
             var dirX = px / lenV;
             var dirY = py / lenV;
     
             // (0, -1)を中心としたcosθの計算 (内積になる).
             var intensity = 0.0;
             var cosV = dirY;
-            if (cosV < 0.0) {	// 180度を超える場合.
+            if (cosV < 0.0 && maxAngle <= 90.0) {	// 180度を超える場合.
                 intensity = 0.0;
+
             } else {
-                // 度数に変換(0 - 90).
-                var angleV = Math.acos(cosV) * 180.0 / Math.PI;
-                angleV = Math.max(0.0, angleV);
-                angleV = Math.min(90.0, angleV);
+                if (cosV < 0.0 && maxAngle > 90.0) {
+                    // 度数に変換(0 - 90).
+                    var angleV = Math.acos(cosV) * 180.0 / Math.PI;
+                    angleV = Math.max(0.0, angleV);
+                    angleV = Math.min(90.0, angleV);
+                    angleV += 90.0;
+                } else {
+                    // 度数に変換(0 - 90).
+                    var angleV = Math.acos(cosV) * 180.0 / Math.PI;
+                    angleV = Math.max(0.0, angleV);
+                    angleV = Math.min(90.0, angleV);
+                }
 
                 var iOffset = 0;
                 if (!symmetryF) {   // 左右非対称にする場合.

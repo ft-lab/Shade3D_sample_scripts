@@ -9,6 +9,7 @@
 <script src="./js/drawEditGraph.js"></script>
 <script src="./js/drawLightDistributionCurve.js"></script>
 <script src="./js/drawLightDistributionPreview.js"></script>
+<script src="./js/lightDistributionPreset.js"></script>
 
 <style>
 #graph_canvas {
@@ -115,31 +116,12 @@
 	// 明るさの配列を初期化.
 	// ---------------------------------------------.
 	function initLightIntensity (maxV) {
-		var cou = 90;
-		lightAngleA        = new Array(cou + 1);
-		lightIntensityList = new Array(cou + 1);
-		var pos = 0.0;
-		var dV = 1.0 / parseFloat(cou);
-		for (var i = 0; i <= cou; i++) {
-			var p = (1.0 - Math.pow(pos, 1.6));
-			lightAngleA[i] = parseFloat(i);
-			lightIntensityList[i] = p * maxV;
-			pos += dV;
-		}
-
-		// ランダムに揺らすテスト.
-		var vD = 800.0 / parseFloat(cou);
-		var vP = 0.0;
-		for (var i = 0; i < cou; ++i) {
-			var v2 = Math.sin(vP * Math.PI / 180.0);
-			v2 = (1.0 + v2) * 0.5;
-			lightIntensityList[i] = Math.max(0.0, lightIntensityList[i] - v2 * maxV * 0.2);
-			vP += vD;
-		}
-
-		// 水平角度の値.
-		lightAngleB = new Array(1);
-		lightAngleB[0] = 0.0;
+		// プリセットの計算.
+		var preset = new LightDistributionPreset();
+		preset.doPreset(1);
+		lightAngleA = preset.getLightAngleA();
+		lightAngleB = preset.getLightAngleB();
+		lightIntensityList = preset.getLightIntensityList();
 	}
 
 	// ---------------------------------------------.
@@ -352,7 +334,7 @@
 		</tr>
 		<tr>
 			<td valign="top" align="center" nowrap>
-				<canvas id="lightDistributionCurve_canvas" width="300" height="300"></canvas>&nbsp;
+				<canvas id="lightDistributionCurve_canvas" width="400" height="400"></canvas>&nbsp;
 			</td>
 			<td valign="top" nowrap>
 				<hr />

@@ -170,4 +170,4 @@ DrawEditGraph.prototype.draw = function () {
             }
         }
     }
-}
+};
