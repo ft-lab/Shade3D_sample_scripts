@@ -88,7 +88,8 @@
 		}
 
 		// 明るさの初期化.
-		initLightIntensity(500.0);
+		var presetIndex = document.form.preset.selectedIndex;
+		initLightIntensity(500.0, presetIndex);
 
 		// グラフを更新.
 		drawEditGraph.setMaxLuminousIntensity(maxLuminousIntensity);
@@ -115,10 +116,10 @@
 	// ---------------------------------------------.
 	// 明るさの配列を初期化.
 	// ---------------------------------------------.
-	function initLightIntensity (maxV) {
+	function initLightIntensity (maxV, presetIndex) {
 		// プリセットの計算.
 		var preset = new LightDistributionPreset();
-		preset.doPreset(1);
+		preset.doPreset(presetIndex);
 		lightAngleA = preset.getLightAngleA();
 		lightAngleB = preset.getLightAngleB();
 		lightIntensityList = preset.getLightIntensityList();
@@ -128,8 +129,10 @@
 	//  初期化.
 	// ---------------------------------------------.
 	function initIES () {
+		var presetIndex = document.form.preset.selectedIndex;
+
 		// 明るさの初期化.
-		initLightIntensity(500.0);
+		initLightIntensity(500.0, presetIndex);
 
 		// グラフを更新.
 		drawEditGraph.setMaxLuminousIntensity(maxLuminousIntensity);
@@ -354,7 +357,15 @@
 							<td>プレビュー輝度 : </td><td><input type="text" value="" id="param_previewBrightness" onChange="changePreviewBrightness()"/></td>
 						</tr>
 					</table>
-					<input type="button" value=" 初期化 " class="button" onClick="initIES()" /><br>
+					<input type="button" value=" 初期化 " class="button_short" onClick="initIES()" />
+					<select name="preset">
+						<option>点光源</option>
+						<option>スポットライト</option>
+						<option>軸対称</option>
+						<option>軸非対称/複数断面</option>
+					</select>
+					<br>
+
 					<input type="button" value=" IESの読み込み ... " class="button" onClick="loadIESFile()" /><br>
 					<input type="button" value=" IESの保存 ... " class="button" onClick="saveIESFile()" /><br>
 				</form>
