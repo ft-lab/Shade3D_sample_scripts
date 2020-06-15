@@ -53,6 +53,9 @@ def loadIES (f):
         if hasTilt == False:
             continue
 
+        if lineStr.find('END') >= 0:
+            break
+
         # 文字列を連結.
         if strA != '':
             strA += ' '
@@ -61,6 +64,9 @@ def loadIES (f):
     # スペースで分解.
     strList = []
     if strA != '':
+        # コンマがある場合はスペースに置き換え.
+        strA = strA.replace(',', ' ')
+
         strList = strA.split()      # スペース、タブ、改行などで分割.
         if strList == None or strList.count <= 13:
             errF = True

@@ -48,6 +48,12 @@
 	// プレビューの輝度.
 	var previewBrightness = 1.0;
 
+	// プレビューのズーム.
+	var previewZoom = 1.0;
+
+	// プレビュー時の壁から離れる距離の比率.
+	var previewDistanceFromWall = 1.0;
+
 	// グラフを描画するクラス.
 	var drawEditGraph = null;
 
@@ -72,8 +78,13 @@
 		document.getElementById("param_lampLuminousFlux").value = lampLuminousFlux.toString();
 		document.getElementById("param_maxLuminousIntensity").value = maxLuminousIntensity.toString();
 		document.getElementById("param_previewBrightness").value = previewBrightness.toString();
+		document.getElementById("param_previewZoom").value = previewZoom.toString();
+		document.getElementById("param_previewDistanceFromWall").value = previewDistanceFromWall.toString();
 		document.getElementById("param_luminousIntensityScale").value = luminousIntensityScale.toString();
+
 		document.getElementById('ies_filename').textContent = iesFileName;
+		document.getElementById('ies_verticalAngles').textContent = lightAngleA.length.toString();
+		document.getElementById('ies_horizontalAngles').textContent = lightAngleB.length.toString();
 
 		// グラフを描画するクラス.
 		{
@@ -129,6 +140,10 @@
 		lightAngleA = preset.getLightAngleA();
 		lightAngleB = preset.getLightAngleB();
 		lightIntensityList = preset.getLightIntensityList();
+
+		document.getElementById('ies_verticalAngles').textContent = lightAngleA.length.toString();
+		document.getElementById('ies_horizontalAngles').textContent = lightAngleB.length.toString();
+		document.getElementById('ies_verticalAngles_range').textContent = lightAngleA[0].toString() + " - " + lightAngleA[lightAngleA.length - 1].toString();
 
 		// 最大光度を取得.
 		maxLuminousIntensity = preset.getMaxLuminousIntensity();
@@ -214,6 +229,10 @@
 			lightAngleB = new Array(angleListB.length);
 			for (var i = 0; i < angleListA.length; ++i) lightAngleA[i] = angleListA[i];
 			for (var i = 0; i < angleListB.length; ++i) lightAngleB[i] = angleListB[i];
+
+			document.getElementById('ies_verticalAngles').textContent = lightAngleA.length.toString();
+			document.getElementById('ies_horizontalAngles').textContent = lightAngleB.length.toString();
+			document.getElementById('ies_verticalAngles_range').textContent = lightAngleA[0].toString() + " - " + lightAngleA[lightAngleA.length - 1].toString();
 
 			// 光度の配列を更新.
 			lightIntensityList = new Array(vCou);
@@ -343,13 +362,17 @@
 	}
 
 	// ---------------------------------------------.
-	// プレビュー輝度が変更された.
+	// プレビュー用のパラメータ(輝度/壁からの距離)が変更された.
 	// ---------------------------------------------.
-	function changePreviewBrightness () {
+	function changePreviewParam () {
 		previewBrightness = parseFloat(document.getElementById("param_previewBrightness").value);
+		previewZoom = parseFloat(document.getElementById("param_previewZoom").value);
+		previewDistanceFromWall = parseFloat(document.getElementById("param_previewDistanceFromWall").value);
 
 		// プレビューを更新.
 		drawLightDistributionPreview.setBrightness(previewBrightness);
+		drawLightDistributionPreview.setZoom(previewZoom);
+		drawLightDistributionPreview.setDistanceFromWall(previewDistanceFromWall);
 		drawLightDistributionPreview.draw();
 	}
 </script>
@@ -389,7 +412,13 @@
 							<td>最大光度 (cd/klm) : </td><td><input type="text" value="" class="edit_box" id="param_maxLuminousIntensity" onChange="changeMaxLuminousIntensity()"/></td>
 						</tr>
 						<tr>
-							<td>プレビュー輝度 : </td><td><input type="text" value="" class="edit_box" id="param_previewBrightness" onChange="changePreviewBrightness()"/></td>
+							<td>[プレビュー] 輝度 : </td><td><input type="text" value="" class="edit_box" id="param_previewBrightness" onChange="changePreviewParam()"/></td>
+						</tr>
+						<tr>
+							<td>[プレビュー] ズーム : </td><td><input type="text" value="" class="edit_box" id="param_previewZoom" onChange="changePreviewParam()"/></td>
+						</tr>
+						<tr>
+							<td>[プレビュー] 壁からの距離 : </td><td><input type="text" value="" class="edit_box" id="param_previewDistanceFromWall" onChange="changePreviewParam()"/></td>
 						</tr>
 					</table>
 					<input type="button" value=" 初期化 " class="preset_button" onClick="initIES()" />
@@ -405,7 +434,13 @@
 					<input type="button" value=" IESの保存 ... " class="button" onClick="saveIESFile()" /><br>
 				</form>
 				<hr />
-				IES : <span id="ies_filename"></span><br>
+
+				<table border=0>
+					<tr><td nowrap align="left">IES</td><td nowrap>: <span id="ies_filename"></span></td></tr>
+					<tr><td nowrap align="left">垂直角度の数</td><td nowrap>: <span id="ies_verticalAngles"></span></td></tr>
+					<tr><td nowrap align="left">垂直角度の範囲</td><td nowrap>: <span id="ies_verticalAngles_range"></span></td></tr>
+					<tr><td nowrap align="left">水平角度の数（断面数）</td><td nowrap>: <span id="ies_horizontalAngles"></span></td></tr>
+				</table>
 			</td>
 		</tr>
 	</table>

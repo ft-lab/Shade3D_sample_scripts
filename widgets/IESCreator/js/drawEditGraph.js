@@ -92,27 +92,31 @@ var DrawEditGraph = function(canvas, lightAngleListA, lightAngleListB, lightInte
         {
             context.font = "8pt Arial";
             context.fillStyle = '#ffffff';
+            context.textAlign = "center";
+            context.textBaseline = "top";
 
             maxAngle = scope.lightAngleListA[scope.lightAngleListA.length - 1];
             dAngle = maxAngle / parseFloat(xCou);
 
-            px = hMargin * 0.8;
-            py = dHeight + vMargin + vMargin * 0.8;
+            px = hMargin;
+            py = dHeight + vMargin + 2;
             for (var i = 0; i <= xCou; i++) {
                 var str = StringUtil.getFloatToString(i * dAngle, 0);
                 context.fillText(str, px, py);
                 px += dx;
             }
-            context.fillText("(度)", hMargin + dWidth + hMargin * 0.4, py);
+            context.fillText("(度)", hMargin + dWidth + hMargin * 0.6, py);
         }
 
         // 垂直の目盛りを描画.
         {
             context.font = "8pt Arial";
             context.fillStyle = '#ffffff';
+            context.textAlign = "right";
+            context.textBaseline = "top";
 
             px = hMargin - 4;
-            py = dHeight + vMargin + 6 - dy;
+            py = dHeight + vMargin - dy - 3;
             var dVal = (scope.maxLuminousIntensity) / parseFloat(yCou);
             var lVal = dVal;
             for (var i = 1; i <= yCou; i++) {
@@ -123,7 +127,7 @@ var DrawEditGraph = function(canvas, lightAngleListA, lightAngleListB, lightInte
                 lVal += dVal;
             }
 
-            context.fillText("(cd/klm)", px + 20, 8 + 6);
+            context.fillText("(cd/klm)", px + 20, 8);
         }
 
         // グラフを描画.

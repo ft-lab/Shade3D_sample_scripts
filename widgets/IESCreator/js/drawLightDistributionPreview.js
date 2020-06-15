@@ -15,11 +15,14 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
     this.lampLuminousFlux = 1000.0;             // ランプ光束.
     this.luminousIntensityScale = 1.0;          // 光度にかける倍率.
     this.previewImage = null;                   // ピクセル描画のImage.
-    this.brightness = 1.0;                      // 輝度.
 
     // プレビューでの光源の中心位置.
     this.lightCenterX = parseFloat(this.canvas.width) * 0.5;
     this.lightCenterY = 20.0;
+
+    this.brightness = 1.0;                      // 輝度.
+    this.zoom = 1.0;                            // ズーム.
+    this.distanceFromWall = 1.0;                // 壁から離れる距離.
 
     var scope = this;
 
@@ -122,6 +125,16 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
         scope.luminousIntensityScale = scaleV;
     };
 
+    // 壁から離れる距離を指定.
+    this.setDistanceFromWall = function (dist) {
+        scope.distanceFromWall = dist;
+    }
+
+    // ズーム値を指定.
+    this.setZoom = function (zoomV) {
+        scope.zoom = zoomV;
+    }
+
     // 光度の配列を指定.
     this.setLightIntensityList = function (lightAngleListA, lightAngleListB, lightIntensityList) {
         scope.lightAngleListA    = lightAngleListA;
@@ -164,37 +177,41 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
 
         var vAngleCou = scope.lightAngleListA.length;
 
-        // Imageを更新.
+        // 明るさを配列に格納.
+        var intensityA = new Array(width * height);
         var hPos1 = 0;
         var hPos2 = (scope.lightAngleListB.length - 1) * vAngleCou;
         var iPos = 0;
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
-                var px = parseFloat(x - centerX) / radius;
-                var py = parseFloat(y - centerY) / radius;
+                var px = (parseFloat(x - centerX) / scope.zoom) / radius;
+                var py = (parseFloat(y - centerY) / scope.zoom) / radius;
+                var pz = scope.distanceFromWall / radius;
         
-                var lenV = Math.sqrt(px * px + py * py);
-                lenV = Math.max(0.01, lenV);
+                var lenV = Math.sqrt(px * px + py * py + pz * pz);
+                lenV = Math.max(0.001, lenV);
 
                 var dirX = px / lenV;
                 var dirY = py / lenV;
+                var dirZ = pz / lenV;
         
                 // (0, -1)を中心としたcosθの計算 (内積になる).
                 var intensity = 0.0;
                 var cosV = dirY;
+                var angleV = 0.0;
                 if (cosV < 0.0 && maxAngle <= 90.0) {	// 180度を超える場合.
                     intensity = 0.0;
 
                 } else {
                     if (cosV < 0.0 && maxAngle > 90.0) {
                         // 度数に変換(0 - 90).
-                        var angleV = Math.acos(cosV) * 180.0 / Math.PI;
+                        angleV = Math.acos(cosV) * 180.0 / Math.PI;
                         angleV = Math.max(0.0, angleV);
                         angleV = Math.min(90.0, angleV);
                         angleV += 90.0;
                     } else {
                         // 度数に変換(0 - 90).
-                        var angleV = Math.acos(cosV) * 180.0 / Math.PI;
+                        angleV = Math.acos(cosV) * 180.0 / Math.PI;
                         angleV = Math.max(0.0, angleV);
                         angleV = Math.min(90.0, angleV);
                     }
@@ -206,23 +223,36 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
                     }
         
                     // angleVの位置での光度を取得.
-                    intensity = getAngleToIntensityA(angleV, iOffset) / sV;
-        
+                    intensity = getAngleToIntensityA(angleV, iOffset);
+
+                    // 角度とcd/klmによる照度を計算.
+                    //intensity = intensity * Math.pow(Math.cos(angleV * Math.PI / 180.0), 3.0) / sV;
+                    intensity = intensity / sV;
+
                     intensity = (intensity * scope.brightness) / maxV;
         
                     if (intensity > 0.0 && lenV > 0.0) {
                         intensity = intensity / (lenV * lenV);
+                    //    intensity = intensity / (py * py);
                     }
-                    intensity = Math.max(0.0, intensity);
-                    intensity = Math.min(1.0, intensity);
                 }
-        
-                var iV = parseInt(intensity * 255.0);
-                scope.previewImage.data[iPos + 0] = iV;
-                scope.previewImage.data[iPos + 1] = iV;
-                scope.previewImage.data[iPos + 2] = iV;
-                scope.previewImage.data[iPos + 3] = 255;
-                iPos += 4;
+                intensityA[iPos] = Math.min(1.0, intensity);
+                iPos++;
+            }
+        }
+
+        // Imageを更新.
+        iPos = 0;
+        var iPos2 = 0;
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                var iV = parseInt(intensityA[iPos] * 255.0);
+                scope.previewImage.data[iPos2 + 0] = iV;
+                scope.previewImage.data[iPos2 + 1] = iV;
+                scope.previewImage.data[iPos2 + 2] = iV;
+                scope.previewImage.data[iPos2 + 3] = 255;
+                iPos2 += 4;
+                iPos++;
             }
         }
 
