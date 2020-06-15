@@ -17,7 +17,13 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
     this.previewImage = null;                   // ピクセル描画のImage.
     this.brightness = 1.0;                      // 輝度.
 
-    // 角度値から明るさを取得 (垂直).
+    // プレビューでの光源の中心位置.
+    this.lightCenterX = parseFloat(this.canvas.width) * 0.5;
+    this.lightCenterY = 20.0;
+
+    var scope = this;
+
+     // 角度値から明るさを取得 (垂直).
     // @param[in] angleV  角度 0.0 - 180.0
     // @param[in] iOffset this.lightIntensityList[]のオフセット。複数断面がある場合の処理.
     this.getAngleToIntensityA = function (angleV, iOffset) {
@@ -75,7 +81,34 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
         }
 
         return rIntensity;
-    }
+    };
+
+    // マウスクリックされた時に呼ばれる.
+    function onClickCanvas (e) {
+        // canvasの位置を取得.
+        var px = 0;
+        var py = 0;
+        var curElement = scope.canvas;
+        while (curElement != null) {
+            px += curElement.offsetLeft;
+            py += curElement.offsetTop;
+            if (curElement.parentElement == null) break;
+            curElement = curElement.parentElement;
+        }
+
+        // マウス位置をローカル座標での位置に変換.        
+		var mx = e.clientX - px;
+  		var my = e.clientY - py;
+
+        // 光源の中心位置を変更.
+        scope.lightCenterX = parseFloat(mx);
+        scope.lightCenterY = parseFloat(my);
+      
+        scope.draw();
+    };
+
+    // マウスイベントを登録.
+    scope.canvas.addEventListener('click', onClickCanvas, false);
 };
 
 // ランプ光束を指定.
@@ -117,8 +150,8 @@ DrawLightDistributionPreview.prototype.draw = function () {
 	}
 
     var widthH = width / 2;
-    var centerX = parseFloat(widthH);
-    var centerY = parseFloat(20);
+    var centerX = this.lightCenterX;
+    var centerY = this.lightCenterY;
     var radius = parseFloat(widthH) * 0.8;
 
     var maxV = 1000.0;

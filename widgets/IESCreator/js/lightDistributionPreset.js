@@ -27,8 +27,8 @@ LightDistributionPreset.prototype.getLightIntensityList = function () {
 
 // プリセットの指定.
 LightDistributionPreset.prototype.doPreset = function (presetType) {
-    var maxV = 500.0;
-    
+    var maxV = 200.0;
+
     if (presetType == 0) {    // 点光源の表現.
         var cou = 180;
         this.lightAngleA        = new Array(cou + 1);
@@ -81,7 +81,7 @@ LightDistributionPreset.prototype.doPreset = function (presetType) {
         var pos = 0.0;
         var dV = 1.0 / parseFloat(cou);
         for (var i = 0; i <= cou; i++) {
-            var p = (1.0 - Math.pow(pos, 1.6));
+            var p = (1.0 - Math.pow(pos, 1.2));     // 1.6
             this.lightAngleA[i] = parseFloat(i);
             this.lightIntensityList[i] = p * maxV;
             pos += dV;
@@ -92,7 +92,7 @@ LightDistributionPreset.prototype.doPreset = function (presetType) {
         var vP = 0.0;
         for (var i = 0; i < cou; ++i) {
             var v2 = Math.sin(vP * Math.PI / 180.0);
-            v2 = (1.0 + v2) * 0.5;
+            v2 = (1.0 + v2) * 0.1;  // 0.5
             this.lightIntensityList[i] = Math.max(0.0, this.lightIntensityList[i] - v2 * maxV * 0.2);
             vP += vD;
         }

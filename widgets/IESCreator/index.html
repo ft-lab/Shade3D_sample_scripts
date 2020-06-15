@@ -247,7 +247,7 @@
 
 		var mx = e.clientX - px;
   		var my = e.clientY - py;
-		//window.alert(mx.toString() + ", " + my.toString());
+		console.log(mx.toString() + ", " + my.toString());
 	}
 
 	// ---------------------------------------------.
@@ -327,8 +327,8 @@
 <body onload="initialize()">
 	<h3>IES Creator</h3>
 	<hr>
-	配光のIESファイルを作成/編集するツールです。<br><br>
-	<table border=0>
+	配光のIESファイルを作成/編集するツールです。<br>
+	<table id="table" border=0>
 		<tr>
 			<td valign="top"><canvas id="graph_canvas" width="408" height="250"></canvas></td>
 			<td valign="top">
@@ -337,7 +337,7 @@
 		</tr>
 		<tr>
 			<td valign="top" align="center" nowrap>
-				<canvas id="lightDistributionCurve_canvas" width="400" height="400"></canvas>&nbsp;
+				<canvas id="lightDistributionCurve_canvas" width="340" height="340"></canvas>&nbsp;
 			</td>
 			<td valign="top" nowrap>
 				<hr />
@@ -373,7 +373,6 @@
 			</td>
 		</tr>
 	</table>
-	<span id="debug_msg"></span><br>
 	<hr />
 </body>
 </html>
