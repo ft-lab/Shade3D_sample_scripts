@@ -149,6 +149,10 @@
 		maxLuminousIntensity = preset.getMaxLuminousIntensity();
 		document.getElementById("param_maxLuminousIntensity").value = maxLuminousIntensity.toString();
 
+		// 光度にかける倍率を1.0のリセット.
+		luminousIntensityScale = 1.0;
+		document.getElementById("param_luminousIntensityScale").value = luminousIntensityScale.toString();
+
 		// ランプ光束を取得 (1000lm固定).
 		lampLuminousFlux = preset.getLampLuminousFlux();
 		document.getElementById("param_lampLuminousFlux").value = lampLuminousFlux.toString();
