@@ -10,6 +10,10 @@ input.button {
   width : 256px;
 }
 
-input.button_short {
-  width : 110px;
+input.preset_button {
+  width : 72px;
+}
+
+input.preset_select {
+  width : 180px;
 }

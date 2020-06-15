@@ -15,150 +15,213 @@ var DrawLightDistributionCurve = function(canvas, lightAngleListA, lightAngleLis
     this.lampLuminousFlux = 1000.0;             // ランプ光束.
     this.luminousIntensityScale = 1.0;          // 光度にかける倍率.
     this.maxLuminousIntensity = 500.0;          // 最大光度.
-};
 
-// ランプ光束を指定.
-DrawLightDistributionCurve.prototype.setLampLuminousFlux = function (intensityV) {
-    this.lampLuminousFlux = intensityV;
-};
+    var scope = this;
 
-// 最大光度を指定.
-DrawLightDistributionCurve.prototype.setMaxLuminousIntensity = function (intensityV) {
-    this.maxLuminousIntensity = intensityV;
-};
-
-// 光度にかける倍率を指定.
-DrawLightDistributionCurve.prototype.setLuminousIntensityScale = function (scaleV) {
-    this.luminousIntensityScale = scaleV;
-};
-
-// 光度の配列を指定.
-DrawLightDistributionCurve.prototype.setLightIntensityList = function (lightAngleListA, lightAngleListB, lightIntensityList) {
-    this.lightAngleListA    = lightAngleListA;
-    this.lightAngleListB    = lightAngleListB;
-    this.lightIntensityList = lightIntensityList;
-};
-
-// 描画処理.
-DrawLightDistributionCurve.prototype.draw = function () {
-    var width  = this.canvas.width;
-    var height = this.canvas.height;
-
-    var context = this.canvas.getContext("2d");
-
-    // 背景塗りつぶし.
-    context.fillStyle = '#ffffff';
-    context.fillRect(0, 0, width, height);
-
-    var grayCol  = '#909090';
-    var blackCol = '#000000';
-
-    // 外枠を描画.
-    context.beginPath();
-    context.lineWidth = 1.0;
-    context.strokeStyle = grayCol;
-    context.strokeRect(0, 0, width, height);
-    context.stroke();
-
-    // 同心円を描画.
-    var circleCou = 10;
-    var centerX = width / 2;
-    var centerY = height / 2;
-    var maxR0 = parseFloat(width) * 0.5;
-    var maxR = parseFloat(width) * 0.45;
-    var rD = maxR / parseFloat(circleCou);
-    var r = rD;
-    for (var i = 1; i <= circleCou; ++i) {
-        context.beginPath();
-        context.strokeStyle = grayCol;
-        context.lineWidth = 0.5;
-        context.arc(centerX, centerY, r, 0, Math.PI * 2);
-        context.stroke();
-        r += rD;
-    }
-
-    // 10度ごとに向きを描画.
-    for (var i = 0; i < 36; ++i) {
-        var angleV = parseFloat(i) * 10.0;
-        var dV = angleV * Math.PI / 180.0;
-        var dxS = Math.cos(dV);
-        var dyS = Math.sin(dV);
-        var dx0 = dxS * rD;
-        var dy0 = dyS * rD;
-        var dx = dxS * maxR0;
-        var dy = dyS * maxR0;
-        if (i == 0 || i == 9 || i == 18 || i == 27) {
-            dx0 = dy0 = 0.0;
+    // 最大光度を取得.
+    this.getMaxLuminousIntensity = function () {
+        var maxV = 0.0;
+        for (var i = 0; i < scope.lightIntensityList.length; ++i) {
+            var v = scope.lightIntensityList[i];
+            maxV = Math.max(v, maxV);
         }
+        return maxV;
+    };
+
+    // ランプ光束を指定.
+    this.setLampLuminousFlux = function (intensityV) {
+        scope.lampLuminousFlux = intensityV;
+    };
+
+    // 最大光度を指定.
+    this.setMaxLuminousIntensity = function (intensityV) {
+        scope.maxLuminousIntensity = intensityV;
+    };
+
+    // 光度にかける倍率を指定.
+    this.setLuminousIntensityScale = function (scaleV) {
+        scope.luminousIntensityScale = scaleV;
+    };
+
+    // 光度の配列を指定.
+    this.setLightIntensityList = function (lightAngleListA, lightAngleListB, lightIntensityList) {
+        scope.lightAngleListA    = lightAngleListA;
+        scope.lightAngleListB    = lightAngleListB;
+        scope.lightIntensityList = lightIntensityList;
+    };
+
+    // 描画処理.
+    this.draw = function () {
+        var width  = scope.canvas.width;
+        var height = scope.canvas.height;
+
+        var context = scope.canvas.getContext("2d");
+
+        // 背景塗りつぶし.
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, width, height);
+
+        var grayCol  = '#909090';
+        var blackCol = '#000000';
+
+        // 外枠を描画.
         context.beginPath();
+        context.lineWidth = 1.0;
         context.strokeStyle = grayCol;
-        context.lineWidth = 0.5;
-        context.moveTo(centerX + dx0, centerY - dy0);
-        context.lineTo(centerX + dx, centerY - dy);
+        context.strokeRect(0, 0, width, height);
         context.stroke();
-    }
 
-	// 曲線を描画.
-	{
-        var maxAngle = this.lightAngleListA[this.lightAngleListA.length - 1];
-
-        // cd/klm にする場合は以下をthis.lampLuminousFlux / 1000.0にする.
-        var sV = 1.0;   //this.lampLuminousFlux / 1000.0;
-
-        // 明るさは、光度値 * 1000.0 / (ランプ光束) で計算できる.
-        if (maxAngle <= 90.0 && this.lightAngleListB.length == 1) {
-            // 左右対称の場合.
-            for (var loop = 0; loop < 2; ++loop) {
-                context.beginPath();
-                context.strokeStyle = blackCol;
-                context.lineWidth = 1.0;
-                var lCou = this.lightAngleListA.length;
-                for (var i = 0; i < lCou; ++i) {
-                    var angleV = this.lightAngleListA[i];
-                    var dV = (angleV - 90.0) * Math.PI / 180.0;
-                    var dxS = Math.cos(dV);
-                    var dyS = Math.sin(dV);
-                    if (loop == 1) dxS = -dxS;
-                    var v = (this.lightIntensityList[i] / sV) * maxR / this.maxLuminousIntensity;
-                    var dx = dxS * v;
-                    var dy = dyS * v;
-                    if (i == 0) {
-                        context.moveTo(centerX + dx, centerY - dy);
-                    } else {
-                        context.lineTo(centerX + dx, centerY - dy);				
-                    }
-                }
-                context.stroke();
-            }
-        } else {
-            // 180度反映の場合.
+        // 同心円を描画.
+        var circleCou = 10;
+        var centerX = width / 2;
+        var centerY = height / 2;
+        var maxR0 = parseFloat(width) * 0.5;
+        var maxR = parseFloat(width) * 0.45;
+        var rD = maxR / parseFloat(circleCou);
+        var r = rD;
+        for (var i = 1; i <= circleCou; ++i) {
             context.beginPath();
-            context.strokeStyle = "#e07070";
-            context.lineWidth = 1.0;
-            var lCou = this.lightAngleListA.length;
+            context.strokeStyle = grayCol;
+            context.lineWidth = 0.5;
+            context.arc(centerX, centerY, r, 0, Math.PI * 2);
+            context.stroke();
+            r += rD;
+        }
 
-            // 水平角度で90.0度回転したものを描画.
-            {
-                // 0 ~ +180 へ反映.
-                var hPos1 = 0;
-                for (var i = 0; i < this.lightAngleListB.length; ++i) {
-                    if (Math.abs(this.lightAngleListB[i] - 90.0) < 0.01) {
-                        hPos1 = i;
-                        break;
+        // 10度ごとに向きを描画.
+        for (var i = 0; i < 36; ++i) {
+            var angleV = parseFloat(i) * 10.0;
+            var dV = angleV * Math.PI / 180.0;
+            var dxS = Math.cos(dV);
+            var dyS = Math.sin(dV);
+            var dx0 = dxS * rD;
+            var dy0 = dyS * rD;
+            var dx = dxS * maxR0;
+            var dy = dyS * maxR0;
+            if (i == 0 || i == 9 || i == 18 || i == 27) {
+                dx0 = dy0 = 0.0;
+            }
+            context.beginPath();
+            context.strokeStyle = grayCol;
+            context.lineWidth = 0.5;
+            context.moveTo(centerX + dx0, centerY - dy0);
+            context.lineTo(centerX + dx, centerY - dy);
+            context.stroke();
+        }
+
+        // 曲線を描画.
+        {
+            var maxAngle = scope.lightAngleListA[scope.lightAngleListA.length - 1];
+
+            // cd/klm にする場合は以下をscope.lampLuminousFlux / 1000.0にする.
+            var sV = 1.0;   //scope.lampLuminousFlux / 1000.0;
+
+            // 明るさは、光度値 * 1000.0 / (ランプ光束) で計算できる.
+            if (maxAngle <= 90.0 && scope.lightAngleListB.length == 1) {
+                // 左右対称の場合.
+                for (var loop = 0; loop < 2; ++loop) {
+                    context.beginPath();
+                    context.strokeStyle = blackCol;
+                    context.lineWidth = 1.0;
+                    var lCou = scope.lightAngleListA.length;
+                    for (var i = 0; i < lCou; ++i) {
+                        var angleV = scope.lightAngleListA[i];
+                        var dV = (angleV - 90.0) * Math.PI / 180.0;
+                        var dxS = Math.cos(dV);
+                        var dyS = Math.sin(dV);
+                        if (loop == 1) dxS = -dxS;
+                        var v = (scope.lightIntensityList[i] / sV) * maxR / scope.maxLuminousIntensity;
+                        var dx = dxS * v;
+                        var dy = dyS * v;
+                        if (i == 0) {
+                            context.moveTo(centerX + dx, centerY - dy);
+                        } else {
+                            context.lineTo(centerX + dx, centerY - dy);				
+                        }
+                    }
+                    context.stroke();
+                }
+            } else {
+                // 180度反映の場合.
+                context.beginPath();
+                context.strokeStyle = "#e07070";
+                context.lineWidth = 1.0;
+                var lCou = scope.lightAngleListA.length;
+
+                // 水平角度で90.0度回転したものを描画.
+                {
+                    // 0 ~ +180 へ反映.
+                    var hPos1 = 0;
+                    for (var i = 0; i < scope.lightAngleListB.length; ++i) {
+                        if (Math.abs(scope.lightAngleListB[i] - 90.0) < 0.01) {
+                            hPos1 = i;
+                            break;
+                        }
+                    }
+
+                    var iPos1 = hPos1 * lCou;
+                    {
+                        for (var i = 0; i < lCou; ++i) {
+                            var angleV = scope.lightAngleListA[i];
+                            var dV = (angleV - 90.0) * Math.PI / 180.0;
+                            var dxS = Math.cos(dV);
+                            var dyS = Math.sin(dV);
+            
+                            var v = scope.lightIntensityList[i + iPos1];
+                            v = v / sV;
+                            v = v * maxR / scope.maxLuminousIntensity;
+                            var dx = dxS * v;
+                            var dy = dyS * v;
+                            if (i == 0) {
+                                context.moveTo(centerX + dx, centerY - dy);
+                            } else {
+                                context.lineTo(centerX + dx, centerY - dy);				
+                            }
+                        }
+                        context.stroke();
+                    }
+
+                    // 0 ~ -180 へ反映.
+                    {
+                        var iPos2 = (scope.lightAngleListB.length - 1 - hPos1) * lCou;
+                        for (var i = 0; i < lCou; ++i) {
+                            var angleV = scope.lightAngleListA[i];
+                            var dV = (-90.0 - angleV) * Math.PI / 180.0;
+                            var dxS = Math.cos(dV);
+                            var dyS = Math.sin(dV);
+            
+                            var v = scope.lightIntensityList[i + iPos2];
+                            v = v / sV;
+                            v = v * maxR / scope.maxLuminousIntensity;
+                            var dx = dxS * v;
+                            var dy = dyS * v;
+                            if (i == 0) {
+                                context.moveTo(centerX + dx, centerY - dy);
+                            } else {
+                                context.lineTo(centerX + dx, centerY - dy);				
+                            }
+                        }
+                        context.stroke();
                     }
                 }
 
-                var iPos1 = hPos1 * lCou;
+                context.beginPath();
+                context.lineWidth = 1.0;
+                context.strokeStyle = blackCol;
+
+                // 0 ~ +180 へ反映.
                 {
+                    var hPos1 = 0;
+                    var iPos1 = hPos1 * lCou;
                     for (var i = 0; i < lCou; ++i) {
-                        var angleV = this.lightAngleListA[i];
+                        var angleV = scope.lightAngleListA[i];
                         var dV = (angleV - 90.0) * Math.PI / 180.0;
                         var dxS = Math.cos(dV);
                         var dyS = Math.sin(dV);
         
-                        var v = this.lightIntensityList[i + iPos1];
+                        var v = scope.lightIntensityList[i + iPos1];
                         v = v / sV;
-                        v = v * maxR / this.maxLuminousIntensity;
+                        v = v * maxR / scope.maxLuminousIntensity;
                         var dx = dxS * v;
                         var dy = dyS * v;
                         if (i == 0) {
@@ -172,16 +235,16 @@ DrawLightDistributionCurve.prototype.draw = function () {
 
                 // 0 ~ -180 へ反映.
                 {
-                    var iPos2 = (this.lightAngleListB.length - 1 - hPos1) * lCou;
+                    var iPos2 = (scope.lightAngleListB.length - 1 - hPos1) * lCou;
                     for (var i = 0; i < lCou; ++i) {
-                        var angleV = this.lightAngleListA[i];
+                        var angleV = scope.lightAngleListA[i];
                         var dV = (-90.0 - angleV) * Math.PI / 180.0;
                         var dxS = Math.cos(dV);
                         var dyS = Math.sin(dV);
         
-                        var v = this.lightIntensityList[i + iPos2];
+                        var v = scope.lightIntensityList[i + iPos2];
                         v = v / sV;
-                        v = v * maxR / this.maxLuminousIntensity;
+                        v = v * maxR / scope.maxLuminousIntensity;
                         var dx = dxS * v;
                         var dy = dyS * v;
                         if (i == 0) {
@@ -193,125 +256,81 @@ DrawLightDistributionCurve.prototype.draw = function () {
                     context.stroke();
                 }
             }
-
-            context.beginPath();
-            context.lineWidth = 1.0;
-            context.strokeStyle = blackCol;
-
-            // 0 ~ +180 へ反映.
-            {
-                var hPos1 = 0;
-                var iPos1 = hPos1 * lCou;
-                for (var i = 0; i < lCou; ++i) {
-                    var angleV = this.lightAngleListA[i];
-                    var dV = (angleV - 90.0) * Math.PI / 180.0;
-                    var dxS = Math.cos(dV);
-                    var dyS = Math.sin(dV);
-    
-                    var v = this.lightIntensityList[i + iPos1];
-                    v = v / sV;
-                    v = v * maxR / this.maxLuminousIntensity;
-                    var dx = dxS * v;
-                    var dy = dyS * v;
-                    if (i == 0) {
-                        context.moveTo(centerX + dx, centerY - dy);
-                    } else {
-                        context.lineTo(centerX + dx, centerY - dy);				
-                    }
-                }
-                context.stroke();
-            }
-
-            // 0 ~ -180 へ反映.
-            {
-                var iPos2 = (this.lightAngleListB.length - 1 - hPos1) * lCou;
-                for (var i = 0; i < lCou; ++i) {
-                    var angleV = this.lightAngleListA[i];
-                    var dV = (-90.0 - angleV) * Math.PI / 180.0;
-                    var dxS = Math.cos(dV);
-                    var dyS = Math.sin(dV);
-    
-                    var v = this.lightIntensityList[i + iPos2];
-                    v = v / sV;
-                    v = v * maxR / this.maxLuminousIntensity;
-                    var dx = dxS * v;
-                    var dy = dyS * v;
-                    if (i == 0) {
-                        context.moveTo(centerX + dx, centerY - dy);
-                    } else {
-                        context.lineTo(centerX + dx, centerY - dy);				
-                    }
-                }
-                context.stroke();
-            }
         }
-	}
 
-	// 光度値を描画.
-	{
-		context.font = "8pt Arial";
-		context.fillStyle = '#606060';
-		context.textAlign = "center";
-        //context.textBaseline = "alphabetic";        // デフォルト.
-        context.textBaseline = "top";
+        // 光度値を描画.
+        {
+            context.font = "8pt Arial";
+            context.fillStyle = '#606060';
+            context.textAlign = "center";
+            //context.textBaseline = "alphabetic";        // デフォルト.
+            context.textBaseline = "top";
 
-		var angleV = 0.0;
-		var dV = (angleV - 90.0) * Math.PI / 180.0;
-		var dxS = Math.cos(dV);
-        var dyS = Math.sin(dV);
-        
-        var dCou = 5;
-        var maxI = this.maxLuminousIntensity;
-        var dI = maxI / parseFloat(dCou);
-        var curI = dI;
-        for (var i = 1; i <= dCou; ++i) {
-            var v = curI * maxR / this.maxLuminousIntensity;
-            var dx = dxS * v;
-            var dy = dyS * v;
-
-            var cVal = parseInt(curI).toString();
-            if (i == dCou) cVal += " (cd)";
-            context.fillText(cVal, centerX + dx , centerY - dy - 8.0);
-        
-            curI += dI;
-        }
-    }
-
-    // 角度値を描画.
-    {
-		context.font = "8pt Arial";
-		context.fillStyle = '#606060';
-		context.textAlign = "center";
-        context.textBaseline = "top";
-
-        var dist = parseFloat(width) * 0.46;
-        for (var angleV = 0.0; angleV <= 180.0; angleV += 30.0) {
+            var angleV = 0.0;
             var dV = (angleV - 90.0) * Math.PI / 180.0;
             var dxS = Math.cos(dV);
             var dyS = Math.sin(dV);
-            var dx = dxS * dist;
-            var dy = dyS * dist;
-            var cVal = parseInt(angleV).toString() + "°";
-            context.fillText(cVal, centerX + dx , centerY - dy);
+            
+            var dCou = 5;
+            var maxI = scope.maxLuminousIntensity;
+            var dI = maxI / parseFloat(dCou);
+            var curI = dI;
+            for (var i = 1; i <= dCou; ++i) {
+                var v = curI * maxR / scope.maxLuminousIntensity;
+                var dx = dxS * v;
+                var dy = dyS * v;
 
-            if (Math.abs(angleV - 0.0) > 0.001 && Math.abs(angleV - 180.0) > 0.001) {
-                context.fillText(cVal, centerX - dx , centerY - dy);
+                var cVal = parseInt(curI).toString();
+                if (i == dCou) cVal += " (cd)";
+                context.fillText(cVal, centerX + dx , centerY - dy - 8.0);
+            
+                curI += dI;
             }
         }
-    }
-    
-    // ランプ光束と倍率を描画.
-    {
-		context.font = "8pt Arial";
-		context.fillStyle = '#000000';
-        context.textAlign = "left";
-        context.textBaseline = "top";
 
-        var strV = "ランプ光束 : " + this.lampLuminousFlux.toString() + " lm";
-		context.fillText(strV, 4, 4);
+        // 角度値を描画.
+        {
+            context.font = "8pt Arial";
+            context.fillStyle = '#606060';
+            context.textAlign = "center";
+            context.textBaseline = "top";
 
-        //strV = "光度倍率 : x " + this.luminousIntensityScale.toString();
-		//context.fillText(strV, 4, 4 + 12);
-    }
+            var dist = parseFloat(width) * 0.46;
+            for (var angleV = 0.0; angleV <= 180.0; angleV += 30.0) {
+                var dV = (angleV - 90.0) * Math.PI / 180.0;
+                var dxS = Math.cos(dV);
+                var dyS = Math.sin(dV);
+                var dx = dxS * dist;
+                var dy = dyS * dist;
+                var cVal = parseInt(angleV).toString() + "°";
+                context.fillText(cVal, centerX + dx , centerY - dy);
+
+                if (Math.abs(angleV - 0.0) > 0.001 && Math.abs(angleV - 180.0) > 0.001) {
+                    context.fillText(cVal, centerX - dx , centerY - dy);
+                }
+            }
+        }
+        
+        // ランプ光束と倍率を描画.
+        {
+            context.font = "8pt Arial";
+            context.fillStyle = '#000000';
+            context.textAlign = "left";
+            context.textBaseline = "top";
+
+            var strV = "ランプ光束 : " + scope.lampLuminousFlux.toString() + " lm";
+            context.fillText(strV, 4, 4);
+
+            // 最大光度を取得.
+            var maxL = scope.getMaxLuminousIntensity();
+            if (maxL > 0.0) {
+                strV = "最大光度 : " + StringUtil.getFloatToString(maxL, 2) + " cd";
+                context.fillText(strV, 4, 20);
+            }
+
+            //strV = "光度倍率 : x " + scope.luminousIntensityScale.toString();
+            //context.fillText(strV, 4, 4 + 12);
+        }
+    };
 };
 

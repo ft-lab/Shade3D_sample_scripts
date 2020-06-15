@@ -6,6 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <link rel="stylesheet" type="text/css" href="./style.css" />
 <script src="./js/readExternalFile.js"></script>
+<script src="./js/stringUtil.js"></script>
 <script src="./js/drawEditGraph.js"></script>
 <script src="./js/drawLightDistributionCurve.js"></script>
 <script src="./js/drawLightDistributionPreview.js"></script>
@@ -89,7 +90,7 @@
 
 		// 明るさの初期化.
 		var presetIndex = document.form.preset.selectedIndex;
-		initLightIntensity(500.0, presetIndex);
+		initLightIntensity(presetIndex);
 
 		// グラフを更新.
 		drawEditGraph.setMaxLuminousIntensity(maxLuminousIntensity);
@@ -116,13 +117,17 @@
 	// ---------------------------------------------.
 	// 明るさの配列を初期化.
 	// ---------------------------------------------.
-	function initLightIntensity (maxV, presetIndex) {
+	function initLightIntensity (presetIndex) {
 		// プリセットの計算.
 		var preset = new LightDistributionPreset();
 		preset.doPreset(presetIndex);
 		lightAngleA = preset.getLightAngleA();
 		lightAngleB = preset.getLightAngleB();
 		lightIntensityList = preset.getLightIntensityList();
+
+		// 最大光度を取得.
+		maxLuminousIntensity = preset.getMaxLuminousIntensity();
+		document.getElementById("param_maxLuminousIntensity").value = maxLuminousIntensity.toString();
 	}
 
 	// ---------------------------------------------.
@@ -132,7 +137,7 @@
 		var presetIndex = document.form.preset.selectedIndex;
 
 		// 明るさの初期化.
-		initLightIntensity(500.0, presetIndex);
+		initLightIntensity(presetIndex);
 
 		// グラフを更新.
 		drawEditGraph.setMaxLuminousIntensity(maxLuminousIntensity);
@@ -357,10 +362,10 @@
 							<td>プレビュー輝度 : </td><td><input type="text" value="" id="param_previewBrightness" onChange="changePreviewBrightness()"/></td>
 						</tr>
 					</table>
-					<input type="button" value=" 初期化 " class="button_short" onClick="initIES()" />
-					<select name="preset">
-						<option>点光源</option>
-						<option>スポットライト</option>
+					<input type="button" value=" 初期化 " class="preset_button" onClick="initIES()" />
+					<select name="preset" class="preset_select">
+						<option>点光源 (79.57 cd/klm)</option>
+						<option>スポットライト (79.57 cd/klm)</option>
 						<option>軸対称</option>
 						<option>軸非対称/複数断面</option>
 					</select>
