@@ -156,45 +156,14 @@ var LightDistributionPreset = function(presetType) {
         }
     };
 
+    // ランプ光束を取得 (1000lm 固定).
+    this.getLampLuminousFlux = function () {
+        return 1000.0;
+    };
+
     // 最大光度を取得.
     this.getMaxLuminousIntensity = function () {
-        var maxV = 100.0;
-        var lCou = scope.lightIntensityList.length;
-        if (lCou == 0) return maxV;
-
-        maxV = 0.0;
-        for (var i = 0; i < lCou; ++i) {
-            var v = scope.lightIntensityList[i];
-            maxV = Math.max(v, maxV);
-        }
-
-        // 区切りのいい数値にする.
-        if (maxV <= 100.0) {
-            var vA = [0.0, 20.0, 40.0, 50.0, 60.0, 80.0, 100.0];
-            for (var i = 0; i < vA.length - 1; ++i) {
-                if (maxV >= vA[i] && maxV <= vA[i+1]) {
-                    maxV = vA[i+1];
-                    break;
-                }
-            }
-            return maxV;
-        }
-        if (maxV <= 1000.0) {
-            var vA = [100.0, 200.0, 400.0, 500.0, 600.0, 800.0, 1000.0];
-            for (var i = 0; i < vA.length - 1; ++i) {
-                if (maxV >= vA[i] && maxV <= vA[i+1]) {
-                    maxV = vA[i+1];
-                    break;
-                }
-            }
-            return maxV;
-        }
-        {
-            var mI = parseInt(maxV / 1000.0);
-            maxV = parseFloat((mI + 1) * 1000);
-        }
-
-        return maxV;
+        return LightIntensityUtil.getMaxIntensity(scope.lightIntensityList, true, 1.0);
     };
 };
 

@@ -9,6 +9,7 @@
 #   intensityList          光度の配列 (水平 * 垂直分).
 # ----------------------------------------------------------.
 import json
+import os.path
 
 # 対応するIESのフォーマットは、IESNA91
 
@@ -17,13 +18,14 @@ dialog = xshade.create_dialog()
 filePath = dialog.ask_path(True, "IES(.ies)|ies")
 
 result = ''
-resultData = {"lampLuminousFlux" : 0.0, "luminousIntensityScale" : 1.0, "angleListA" : [], "angleListB" : [], "intensityList" : [], "errorMessage" : ""}
+resultData = {"lampLuminousFlux" : 0.0, "luminousIntensityScale" : 1.0, "angleListA" : [], "angleListB" : [], "intensityList" : [], "fileName" : "", "errorMessage" : ""}
 
 # IESファイルを読み込み.
 def loadIES (f):
     strA = ''
     chkIESNA = False
     errF = False
+    hasTilt = False
     for lineStr in f:
         # 1行の空白や改行コードを取り除く.
         lineStr = lineStr.strip()
@@ -35,11 +37,8 @@ def loadIES (f):
             chkIESNA = True
             continue
 
-        if chkIESNA == False:
-            errF = True
-            break
-
         if lineStr.find('TILT=') >= 0:
+            hasTilt = True
             continue
 
         if lineStr.find('[TEST]') >= 0:
@@ -51,6 +50,9 @@ def loadIES (f):
         if lineStr.find('[') >= 0:
             continue
 
+        if hasTilt == False:
+            continue
+
         # 文字列を連結.
         if strA != '':
             strA += ' '
@@ -60,7 +62,7 @@ def loadIES (f):
     strList = []
     if strA != '':
         strList = strA.split()      # スペース、タブ、改行などで分割.
-        if strList.count <= 13:
+        if strList == None or strList.count <= 13:
             errF = True
 
     if errF:
@@ -68,7 +70,7 @@ def loadIES (f):
         return
 
     # ランプ光束 (lm).
-    resultData["lampLuminousFlux"] = float(strList[1])
+    resultData["lampLuminousFlux"] = max(1.0, float(strList[1]))
 
     # 光度にかける倍率.
     resultData["luminousIntensityScale"] = float(strList[2])
@@ -104,6 +106,8 @@ def loadIES (f):
             iPos += 1
 
 if filePath != '':
+    resultData["fileName"] = os.path.basename(filePath)
+
     # ファイルパスをPythonで理解できるようにUTF-8から変換.
     filePath = filePath.decode('utf-8')
 
@@ -111,6 +115,7 @@ if filePath != '':
         f = open(filePath)
         loadIES(f)
         f.close()
+
     except Exception as e:
         resultData["errorMessage"] = str(e)
 

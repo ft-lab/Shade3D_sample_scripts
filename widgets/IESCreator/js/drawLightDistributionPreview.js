@@ -152,6 +152,9 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
 
         var maxV = 1000.0;
 
+        // cd/klm にする.
+        var sV = (scope.lampLuminousFlux / scope.luminousIntensityScale) / 1000.0;
+
         // 角度の最大値を取得.
         // 90.0と180.0で左右対称にするか180度使うか決まる.
         var maxAngle = scope.lightAngleListA[scope.lightAngleListA.length - 1];
@@ -203,9 +206,8 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
                     }
         
                     // angleVの位置での光度を取得.
-                    intensity = getAngleToIntensityA(angleV, iOffset);
+                    intensity = getAngleToIntensityA(angleV, iOffset) / sV;
         
-                    intensity = intensity * scope.luminousIntensityScale;
                     intensity = (intensity * scope.brightness) / maxV;
         
                     if (intensity > 0.0 && lenV > 0.0) {

@@ -6,6 +6,10 @@ body {
   -webkit-user-select: none;
 }
 
+input.edit_box {
+  width : 130px;
+}
+
 input.button {
   width : 256px;
 }

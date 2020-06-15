@@ -13,20 +13,10 @@ var DrawLightDistributionCurve = function(canvas, lightAngleListA, lightAngleLis
     this.lightIntensityList = lightIntensityList;
 
     this.lampLuminousFlux = 1000.0;             // ランプ光束.
-    this.luminousIntensityScale = 1.0;          // 光度にかける倍率.
+    this.luminousIntensityScale = 1.0;          // 光度にかける倍率。通常は1.0.
     this.maxLuminousIntensity = 500.0;          // 最大光度.
 
     var scope = this;
-
-    // 最大光度を取得.
-    this.getMaxLuminousIntensity = function () {
-        var maxV = 0.0;
-        for (var i = 0; i < scope.lightIntensityList.length; ++i) {
-            var v = scope.lightIntensityList[i];
-            maxV = Math.max(v, maxV);
-        }
-        return maxV;
-    };
 
     // ランプ光束を指定.
     this.setLampLuminousFlux = function (intensityV) {
@@ -109,12 +99,12 @@ var DrawLightDistributionCurve = function(canvas, lightAngleListA, lightAngleLis
             context.stroke();
         }
 
+        // cd/klm にする.
+        var sV = (scope.lampLuminousFlux / scope.luminousIntensityScale) / 1000.0;
+
         // 曲線を描画.
         {
             var maxAngle = scope.lightAngleListA[scope.lightAngleListA.length - 1];
-
-            // cd/klm にする場合は以下をscope.lampLuminousFlux / 1000.0にする.
-            var sV = 1.0;   //scope.lampLuminousFlux / 1000.0;
 
             // 明るさは、光度値 * 1000.0 / (ランプ光束) で計算できる.
             if (maxAngle <= 90.0 && scope.lightAngleListB.length == 1) {
@@ -322,9 +312,9 @@ var DrawLightDistributionCurve = function(canvas, lightAngleListA, lightAngleLis
             context.fillText(strV, 4, 4);
 
             // 最大光度を取得.
-            var maxL = scope.getMaxLuminousIntensity();
+            var maxL = LightIntensityUtil.getMaxIntensity(scope.lightIntensityList, false, 1.0 / sV);
             if (maxL > 0.0) {
-                strV = "最大光度 : " + StringUtil.getFloatToString(maxL, 2) + " cd";
+                strV = "最大光度 : " + StringUtil.getFloatToString(maxL, 2) + " cd/klm";
                 context.fillText(strV, 4, 20);
             }
 

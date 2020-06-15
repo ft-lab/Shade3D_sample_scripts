@@ -10,12 +10,15 @@
 #   luminousIntensityScale   光度にかける倍率.
 #   lampLuminousFlux         ランプ光束(lm).
 # ----------------------------------------------------------.
+import json
+import os.path
 
 # ファイルダイアログボックスを表示し、保存するフルパスを取得.
 dialog = xshade.create_dialog()
 filePath = dialog.ask_path(False, "IES(.ies)|ies")
 
 result = ''
+resultData = {"fileName" : "", "errorMessage" : ""}
 
 # IESNA91の参考.
 #  http://entercad.ru/acad_aug.en/ws73099cc142f48755f058a10f71c104f3-3b1a.htm
@@ -67,7 +70,9 @@ def writeIES (f):
     f.write('0 0 0\n')
 
     # 固定値.
-    f.write('1 1 0\n')
+    # おそらく3つめは W 値.
+    WattV = 0.0
+    f.write('1 1 ' + str(WattV) + '\n')
 
     # 垂直角度の配列.
     strV = ''
@@ -97,6 +102,8 @@ def writeIES (f):
         f.write(strV + '\n')
 
 if filePath != '':
+    resultData["fileName"] = os.path.basename(filePath)
+
     # ファイルパスをPythonで理解できるようにUTF-8から変換.
     filePath = filePath.decode('utf-8')
 
@@ -106,4 +113,7 @@ if filePath != '':
         f.close()
 
     except Exception as e:
-        result = 'error : ' + str(e)
+        resultData["errorMessage"] = str(e)
+
+    result = json.dumps(resultData, ensure_ascii=False)
+

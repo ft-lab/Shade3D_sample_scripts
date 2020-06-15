@@ -7,6 +7,7 @@
 <link rel="stylesheet" type="text/css" href="./style.css" />
 <script src="./js/readExternalFile.js"></script>
 <script src="./js/stringUtil.js"></script>
+<script src="./js/lightIntensityUtil.js"></script>
 <script src="./js/drawEditGraph.js"></script>
 <script src="./js/drawLightDistributionCurve.js"></script>
 <script src="./js/drawLightDistributionPreview.js"></script>
@@ -56,6 +57,9 @@
 	// 配光曲線を描画するクラス.
 	var drawLightDistributionCurve = null;
 
+	// IESファイル名.
+	var iesFileName = '';
+
 	// ---------------------------------------------.
 	// 初期化時に呼ばれる.
 	// ---------------------------------------------.
@@ -69,6 +73,7 @@
 		document.getElementById("param_maxLuminousIntensity").value = maxLuminousIntensity.toString();
 		document.getElementById("param_previewBrightness").value = previewBrightness.toString();
 		document.getElementById("param_luminousIntensityScale").value = luminousIntensityScale.toString();
+		document.getElementById('ies_filename').textContent = iesFileName;
 
 		// グラフを描画するクラス.
 		{
@@ -128,6 +133,13 @@
 		// 最大光度を取得.
 		maxLuminousIntensity = preset.getMaxLuminousIntensity();
 		document.getElementById("param_maxLuminousIntensity").value = maxLuminousIntensity.toString();
+
+		// ランプ光束を取得 (1000lm固定).
+		lampLuminousFlux = preset.getLampLuminousFlux();
+		document.getElementById("param_lampLuminousFlux").value = lampLuminousFlux.toString();
+
+		iesFileName = '';
+		document.getElementById('ies_filename').textContent = iesFileName;
 	}
 
 	// ---------------------------------------------.
@@ -180,6 +192,10 @@
 			var intensityList = rData["intensityList"];
 			var vCou = intensityList.length;
 
+			// IESファイル名.
+			iesFileName = rData["fileName"];
+			document.getElementById('ies_filename').textContent = iesFileName;
+
 			// ランプ光束の更新.
 			lampLuminousFlux = parseFloat(rData["lampLuminousFlux"]);
 			document.getElementById("param_lampLuminousFlux").value = lampLuminousFlux.toString();
@@ -187,6 +203,11 @@
 			// 光度にかける倍率の更新.
 			luminousIntensityScale = parseFloat(rData["luminousIntensityScale"]);
 			document.getElementById("param_luminousIntensityScale").value = luminousIntensityScale.toString();
+
+			// 最大光度の更新.
+			var sV = (lampLuminousFlux / luminousIntensityScale) / 1000.0;
+			maxLuminousIntensity = LightIntensityUtil.getMaxIntensity(intensityList, true, 1.0 / sV);
+			document.getElementById("param_maxLuminousIntensity").value = maxLuminousIntensity.toString();
 
 			// 角度のリストを更新.
 			lightAngleA = new Array(angleListA.length);
@@ -237,7 +258,16 @@
 
 		var resultStr = window.external.setScript(paramStr + py_src);
 		if (resultStr != undefined && resultStr != "") {
-			window.alert(resultStr);
+			// 連想配列に変換.
+			var rData = JSON.parse(resultStr);
+			if (rData["errorMessage"] != "") {
+				window.alert(rData["errorMessage"]);
+				return;
+			}
+
+			// IESファイル名.
+			iesFileName = rData["fileName"];
+			document.getElementById('ies_filename').textContent = iesFileName;
 		}
 	}
 
@@ -349,17 +379,17 @@
 				<form method="POST" name="form" action="">
 					<table border=0>
 						<tr>
-							<td>ランプ光束 (lm) : </td><td><input type="text" value="" id="param_lampLuminousFlux" onChange="changeLampLuminousFlux()" /></td>
+							<td>ランプ光束 (lm) : </td><td><input type="text" value="" class="edit_box" id="param_lampLuminousFlux" onChange="changeLampLuminousFlux()" /></td>
 						</tr>
 						<tr>
-							<td>光度の倍率 : </td><td><input type="text" value="" id="param_luminousIntensityScale" onChange="changeLuminousIntensityScale()" /></td>
+							<td>光度の倍率 : </td><td><input type="text" value="" class="edit_box" id="param_luminousIntensityScale" onChange="changeLuminousIntensityScale()" /></td>
 						</tr>
 
 						<tr>
-							<td>最大光度 (cd) : </td><td><input type="text" value="" id="param_maxLuminousIntensity" onChange="changeMaxLuminousIntensity()"/></td>
+							<td>最大光度 (cd/klm) : </td><td><input type="text" value="" class="edit_box" id="param_maxLuminousIntensity" onChange="changeMaxLuminousIntensity()"/></td>
 						</tr>
 						<tr>
-							<td>プレビュー輝度 : </td><td><input type="text" value="" id="param_previewBrightness" onChange="changePreviewBrightness()"/></td>
+							<td>プレビュー輝度 : </td><td><input type="text" value="" class="edit_box" id="param_previewBrightness" onChange="changePreviewBrightness()"/></td>
 						</tr>
 					</table>
 					<input type="button" value=" 初期化 " class="preset_button" onClick="initIES()" />
@@ -375,6 +405,7 @@
 					<input type="button" value=" IESの保存 ... " class="button" onClick="saveIESFile()" /><br>
 				</form>
 				<hr />
+				IES : <span id="ies_filename"></span><br>
 			</td>
 		</tr>
 	</table>

@@ -85,6 +85,9 @@ var DrawEditGraph = function(canvas, lightAngleListA, lightAngleListB, lightInte
             py -= dy;
         }
 
+        // cd/klm にする.
+        var sV = (scope.lampLuminousFlux / scope.luminousIntensityScale) / 1000.0;
+
         // 水平の目盛りを描画.
         {
             context.font = "8pt Arial";
@@ -110,7 +113,7 @@ var DrawEditGraph = function(canvas, lightAngleListA, lightAngleListB, lightInte
 
             px = hMargin - 4;
             py = dHeight + vMargin + 6 - dy;
-            var dVal = scope.maxLuminousIntensity / parseFloat(yCou);
+            var dVal = (scope.maxLuminousIntensity) / parseFloat(yCou);
             var lVal = dVal;
             for (var i = 1; i <= yCou; i++) {
                 var str = StringUtil.getFloatToString(lVal, 2);
@@ -120,7 +123,7 @@ var DrawEditGraph = function(canvas, lightAngleListA, lightAngleListB, lightInte
                 lVal += dVal;
             }
 
-            context.fillText("(cd)", px, 8 + 6);
+            context.fillText("(cd/klm)", px + 20, 8 + 6);
         }
 
         // グラフを描画.
@@ -139,7 +142,7 @@ var DrawEditGraph = function(canvas, lightAngleListA, lightAngleListB, lightInte
             var prevY = 0.0; 
             for (var i = 0; i < angleCou; i++, px += dx) {
                 py = dHeight + vMargin;
-                py -= scope.lightIntensityList[i] * scale / scope.maxLuminousIntensity;
+                py -= (scope.lightIntensityList[i] / sV) * scale / scope.maxLuminousIntensity;
                 //if (py < vMargin) py = vMargin;
                 if (i == 0) {
                     context.moveTo(px, py);
