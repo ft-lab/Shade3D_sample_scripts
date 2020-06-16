@@ -26,18 +26,35 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
 
     var scope = this;
 
-     // 角度値から明るさを取得 (垂直).
-    // @param[in] angleV  角度 0.0 - 180.0
-    // @param[in] iOffset this.lightIntensityList[]のオフセット。複数断面がある場合の処理.
-    function getAngleToIntensityA (angleV, iOffset) {
+    // 角度値から明るさを取得.
+    // @param[in] cosTheta  垂直角度 0 ~ 180.
+    // @param[in] cosPhi    水平角度 -180 ~ +180.
+    function getAngleToIntensityA (cosTheta, cosPhi) {
         var vCou = scope.lightAngleListA.length;
         var minAngle = scope.lightAngleListA[0];
         var maxAngle = scope.lightAngleListA[vCou - 1];
-        if (angleV < minAngle) return 0.0;
-        if (angleV > maxAngle) return 0.0;
+        if (cosTheta < minAngle) return 0.0;
+        if (cosTheta > maxAngle) return 0.0;
 
         var lPos = 0;
         var rPos = vCou - 1;
+
+        // 水平方向の採用断面を取得.
+        var iOffset = 0;
+        if (scope.lightAngleListB.length == 1) {
+            // 軸対称.
+        } else {
+            // 水平角度で、対象の範囲を取得.
+            // TODO :まだ未実装..
+            var minAngleB = scope.lightAngleListB[0];
+            var maxAngleB = scope.lightAngleListB[lightAngleListB.length - 1];
+
+            var angle2 = cosPhi + 360.0;
+            var angle2I = parseInt(angle2);
+            angle2 -= parseFloat(angle2I);
+            
+            if (cosPhi < 0.0) iOffset = (lightAngleListB.length - 1) * vCou;
+        }
 
         // 2分検索で明るさを取得.
         var rIntensity = 0.0;
@@ -47,15 +64,15 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
             var lV = scope.lightAngleListA[lPos];
             var rV = scope.lightAngleListA[rPos];
             var cV = scope.lightAngleListA[cPos];
-            if (Math.abs(angleV - lV) < fMin) {
+            if (Math.abs(cosTheta - lV) < fMin) {
                 rIntensity = scope.lightIntensityList[lPos + iOffset];
                 break;
             }
-            if (Math.abs(angleV - rV) < fMin) {
+            if (Math.abs(cosTheta - rV) < fMin) {
                 rIntensity = scope.lightIntensityList[rPos + iOffset];
                 break;
             }
-            if (Math.abs(angleV - cV) < fMin) {
+            if (Math.abs(cosTheta - cV) < fMin) {
                 rIntensity = scope.lightIntensityList[cPos + iOffset];
                 break;
             }
@@ -64,10 +81,10 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
                     if (i >= vCou) break;
                     var angle1 = scope.lightAngleListA[i];
                     var angle2 = scope.lightAngleListA[i + 1];
-                    if (angleV >= angle1 && angleV <= angle2) {
+                    if (cosTheta >= angle1 && cosTheta <= angle2) {
                         var v1 = scope.lightIntensityList[i + iOffset];
                         var v2 = scope.lightIntensityList[i + 1 + iOffset];
-                        var a1 = (angleV - angle1) / (angle2 - angle1);
+                        var a1 = (cosTheta - angle1) / (angle2 - angle1);
                         var a2 = 1.0 - a1;
                         rIntensity = v1 * a2 + v2 * a1;
                         break;
@@ -76,7 +93,7 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
                 break;
             }
 
-            if (angleV <= cV) {
+            if (cosTheta <= cV) {
                 rPos = cPos;
             } else {
                 lPos = cPos;
@@ -183,61 +200,47 @@ var DrawLightDistributionPreview = function(canvas, lightAngleListA, lightAngleL
         var hPos2 = (scope.lightAngleListB.length - 1) * vAngleCou;
         var iPos = 0;
         for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++) {
+            for (var x = 0; x < width; x++, iPos++) {
+                intensityA[iPos] = 1.0;
                 var px = (parseFloat(x - centerX) / scope.zoom) / radius;
                 var py = (parseFloat(y - centerY) / scope.zoom) / radius;
                 var pz = scope.distanceFromWall / radius;
         
                 var lenV = Math.sqrt(px * px + py * py + pz * pz);
-                lenV = Math.max(0.001, lenV);
+                if (lenV < 0.0001) continue;
 
                 var dirX = px / lenV;
                 var dirY = py / lenV;
                 var dirZ = pz / lenV;
+                if (Math.abs(dirX) < 0.001 && Math.abs(dirZ) < 0.001) continue;
+
+                // (dirX, dirY, dirZ)より、垂直(Theta)と水平方向(Phi)の回転を取得.
+                var cosTheta = Math.acos(dirY);     // 0 ~ -180.
+                var cosPhi   = Math.acos(dirX / Math.sqrt(dirX*dirX + dirZ*dirZ));      // -180 ~ + 180.
+                if (dirZ < 0.0) cosPhi = -cosPhi;
+
+                // 度数に変換.
+                cosTheta = cosTheta * 180.0 / Math.PI;
+                cosPhi   = cosPhi * 180.0 / Math.PI;
         
-                // (0, -1)を中心としたcosθの計算 (内積になる).
                 var intensity = 0.0;
-                var cosV = dirY;
-                var angleV = 0.0;
-                if (cosV < 0.0 && maxAngle <= 90.0) {	// 180度を超える場合.
+                if (dirY < 0.0 && maxAngle <= 90.0) {	// 180度を超える場合.
                     intensity = 0.0;
 
                 } else {
-                    if (cosV < 0.0 && maxAngle > 90.0) {
-                        // 度数に変換(0 - 90).
-                        angleV = Math.acos(cosV) * 180.0 / Math.PI;
-                        angleV = Math.max(0.0, angleV);
-                        angleV = Math.min(90.0, angleV);
-                        angleV += 90.0;
-                    } else {
-                        // 度数に変換(0 - 90).
-                        angleV = Math.acos(cosV) * 180.0 / Math.PI;
-                        angleV = Math.max(0.0, angleV);
-                        angleV = Math.min(90.0, angleV);
-                    }
-
-                    var iOffset = 0;
-                    if (!symmetryF) {   // 左右非対称にする場合.
-                        if (dirX >= 0.0) iOffset = hPos1;
-                        else iOffset = hPos2;
-                    }
-        
                     // angleVの位置での光度を取得.
-                    intensity = getAngleToIntensityA(angleV, iOffset);
+                    intensity = getAngleToIntensityA(cosTheta, cosPhi);
 
                     // 角度とcd/klmによる照度を計算.
-                    //intensity = intensity * Math.pow(Math.cos(angleV * Math.PI / 180.0), 3.0) / sV;
                     intensity = intensity / sV;
 
                     intensity = (intensity * scope.brightness) / maxV;
         
                     if (intensity > 0.0 && lenV > 0.0) {
                         intensity = intensity / (lenV * lenV);
-                    //    intensity = intensity / (py * py);
                     }
                 }
                 intensityA[iPos] = Math.min(1.0, intensity);
-                iPos++;
             }
         }
 

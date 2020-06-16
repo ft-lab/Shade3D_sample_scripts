@@ -104,11 +104,12 @@ var DrawLightDistributionCurve = function(canvas, lightAngleListA, lightAngleLis
 
         // 曲線を描画.
         {
-            var maxAngle = scope.lightAngleListA[scope.lightAngleListA.length - 1];
+            var maxAngleA = scope.lightAngleListA[scope.lightAngleListA.length - 1];
+            var maxAngleB = scope.lightAngleListB[scope.lightAngleListB.length - 1];
 
             // 明るさは、光度値 * 1000.0 / (ランプ光束) で計算できる.
-            if (maxAngle <= 90.0 && scope.lightAngleListB.length == 1) {
-                // 左右対称の場合.
+            if (scope.lightAngleListB.length == 1) {
+                // 軸対称の場合.
                 for (var loop = 0; loop < 2; ++loop) {
                     context.beginPath();
                     context.strokeStyle = blackCol;
@@ -174,6 +175,7 @@ var DrawLightDistributionCurve = function(canvas, lightAngleListA, lightAngleLis
                     // 0 ~ -180 へ反映.
                     {
                         var iPos2 = (scope.lightAngleListB.length - 1 - hPos1) * lCou;
+                        if (maxAngleB <= 90.0) iPos2 = iPos1;
                         for (var i = 0; i < lCou; ++i) {
                             var angleV = scope.lightAngleListA[i];
                             var dV = (-90.0 - angleV) * Math.PI / 180.0;
@@ -195,55 +197,58 @@ var DrawLightDistributionCurve = function(canvas, lightAngleListA, lightAngleLis
                     }
                 }
 
-                context.beginPath();
-                context.lineWidth = 1.0;
-                context.strokeStyle = blackCol;
-
-                // 0 ~ +180 へ反映.
                 {
+                    context.beginPath();
+                    context.lineWidth = 1.0;
+                    context.strokeStyle = blackCol;
                     var hPos1 = 0;
-                    var iPos1 = hPos1 * lCou;
-                    for (var i = 0; i < lCou; ++i) {
-                        var angleV = scope.lightAngleListA[i];
-                        var dV = (angleV - 90.0) * Math.PI / 180.0;
-                        var dxS = Math.cos(dV);
-                        var dyS = Math.sin(dV);
-        
-                        var v = scope.lightIntensityList[i + iPos1];
-                        v = v / sV;
-                        v = v * maxR / scope.maxLuminousIntensity;
-                        var dx = dxS * v;
-                        var dy = dyS * v;
-                        if (i == 0) {
-                            context.moveTo(centerX + dx, centerY - dy);
-                        } else {
-                            context.lineTo(centerX + dx, centerY - dy);				
+    
+                    // 0 ~ +180 へ反映.
+                    {
+                        var iPos1 = hPos1 * lCou;
+                        for (var i = 0; i < lCou; ++i) {
+                            var angleV = scope.lightAngleListA[i];
+                            var dV = (angleV - 90.0) * Math.PI / 180.0;
+                            var dxS = Math.cos(dV);
+                            var dyS = Math.sin(dV);
+            
+                            var v = scope.lightIntensityList[i + iPos1];
+                            v = v / sV;
+                            v = v * maxR / scope.maxLuminousIntensity;
+                            var dx = dxS * v;
+                            var dy = dyS * v;
+                            if (i == 0) {
+                                context.moveTo(centerX + dx, centerY - dy);
+                            } else {
+                                context.lineTo(centerX + dx, centerY - dy);				
+                            }
                         }
+                        context.stroke();
                     }
-                    context.stroke();
-                }
-
-                // 0 ~ -180 へ反映.
-                {
-                    var iPos2 = (scope.lightAngleListB.length - 1 - hPos1) * lCou;
-                    for (var i = 0; i < lCou; ++i) {
-                        var angleV = scope.lightAngleListA[i];
-                        var dV = (-90.0 - angleV) * Math.PI / 180.0;
-                        var dxS = Math.cos(dV);
-                        var dyS = Math.sin(dV);
-        
-                        var v = scope.lightIntensityList[i + iPos2];
-                        v = v / sV;
-                        v = v * maxR / scope.maxLuminousIntensity;
-                        var dx = dxS * v;
-                        var dy = dyS * v;
-                        if (i == 0) {
-                            context.moveTo(centerX + dx, centerY - dy);
-                        } else {
-                            context.lineTo(centerX + dx, centerY - dy);				
+    
+                    // 0 ~ -180 へ反映.
+                    {
+                        var iPos2 = (scope.lightAngleListB.length - 1 - hPos1) * lCou;
+                        if (maxAngleB <= 90.0) iPos2 = iPos1;
+                        for (var i = 0; i < lCou; ++i) {
+                            var angleV = scope.lightAngleListA[i];
+                            var dV = (-90.0 - angleV) * Math.PI / 180.0;
+                            var dxS = Math.cos(dV);
+                            var dyS = Math.sin(dV);
+            
+                            var v = scope.lightIntensityList[i + iPos2];
+                            v = v / sV;
+                            v = v * maxR / scope.maxLuminousIntensity;
+                            var dx = dxS * v;
+                            var dy = dyS * v;
+                            if (i == 0) {
+                                context.moveTo(centerX + dx, centerY - dy);
+                            } else {
+                                context.lineTo(centerX + dx, centerY - dy);				
+                            }
                         }
+                        context.stroke();
                     }
-                    context.stroke();
                 }
             }
         }
@@ -253,7 +258,6 @@ var DrawLightDistributionCurve = function(canvas, lightAngleListA, lightAngleLis
             context.font = "8pt Arial";
             context.fillStyle = '#606060';
             context.textAlign = "center";
-            //context.textBaseline = "alphabetic";        // デフォルト.
             context.textBaseline = "top";
 
             var angleV = 0.0;
@@ -271,7 +275,7 @@ var DrawLightDistributionCurve = function(canvas, lightAngleListA, lightAngleLis
                 var dy = dyS * v;
 
                 var cVal = parseInt(curI).toString();
-                if (i == dCou) cVal += " (cd)";
+                if (i == dCou) cVal += " (cd/klm)";
                 context.fillText(cVal, centerX + dx , centerY - dy - 8.0);
             
                 curI += dI;

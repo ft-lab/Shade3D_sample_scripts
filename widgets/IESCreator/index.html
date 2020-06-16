@@ -141,9 +141,14 @@
 		lightAngleB = preset.getLightAngleB();
 		lightIntensityList = preset.getLightIntensityList();
 
-		document.getElementById('ies_verticalAngles').textContent = lightAngleA.length.toString();
-		document.getElementById('ies_horizontalAngles').textContent = lightAngleB.length.toString();
-		document.getElementById('ies_verticalAngles_range').textContent = lightAngleA[0].toString() + " - " + lightAngleA[lightAngleA.length - 1].toString();
+		var str = lightAngleA.length.toString();
+		str += " (" + lightAngleA[0].toString() + " - " + lightAngleA[lightAngleA.length - 1].toString() + ")"; 
+		document.getElementById('ies_verticalAngles').textContent = str;
+		str = lightAngleB.length.toString();
+		if (lightAngleB.length > 1) {
+			str += " (" + lightAngleB[0].toString() + " - " + lightAngleB[lightAngleB.length - 1].toString() + ")";
+		}
+		document.getElementById('ies_horizontalAngles').textContent = str;
 
 		// 最大光度を取得.
 		maxLuminousIntensity = preset.getMaxLuminousIntensity();
@@ -234,9 +239,14 @@
 			for (var i = 0; i < angleListA.length; ++i) lightAngleA[i] = angleListA[i];
 			for (var i = 0; i < angleListB.length; ++i) lightAngleB[i] = angleListB[i];
 
-			document.getElementById('ies_verticalAngles').textContent = lightAngleA.length.toString();
-			document.getElementById('ies_horizontalAngles').textContent = lightAngleB.length.toString();
-			document.getElementById('ies_verticalAngles_range').textContent = lightAngleA[0].toString() + " - " + lightAngleA[lightAngleA.length - 1].toString();
+			var str = lightAngleA.length.toString();
+			str += " (" + lightAngleA[0].toString() + " - " + lightAngleA[lightAngleA.length - 1].toString() + ")"; 
+			document.getElementById('ies_verticalAngles').textContent = str;
+			str = lightAngleB.length.toString();
+			if (lightAngleB.length > 1) {
+				str += " (" + lightAngleB[0].toString() + " - " + lightAngleB[lightAngleB.length - 1].toString() + ")";
+			}
+			document.getElementById('ies_horizontalAngles').textContent = str;
 
 			// 光度の配列を更新.
 			lightIntensityList = new Array(vCou);
@@ -442,7 +452,6 @@
 				<table border=0>
 					<tr><td nowrap align="left">IES</td><td nowrap>: <span id="ies_filename"></span></td></tr>
 					<tr><td nowrap align="left">垂直角度の数</td><td nowrap>: <span id="ies_verticalAngles"></span></td></tr>
-					<tr><td nowrap align="left">垂直角度の範囲</td><td nowrap>: <span id="ies_verticalAngles_range"></span></td></tr>
 					<tr><td nowrap align="left">水平角度の数（断面数）</td><td nowrap>: <span id="ies_horizontalAngles"></span></td></tr>
 				</table>
 			</td>
